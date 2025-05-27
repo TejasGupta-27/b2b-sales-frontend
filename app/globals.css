@@ -412,3 +412,37 @@ input::placeholder, textarea::placeholder {
     border-color: #3b82f6 !important;
   }
 }
+
+/* Table styles for chat messages */
+.chat-message-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0;
+  font-size: 14px;
+  overflow-x: auto;
+  display: block;
+}
+
+.chat-message-content td,
+.chat-message-content th {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 8px;
+  text-align: left;
+}
+
+.chat-message-content th {
+  background-color: rgba(0, 0, 0, 0.05);
+  font-weight: 600;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .chat-message-content td,
+  .chat-message-content th {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .chat-message-content th {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+}

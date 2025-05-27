@@ -15,48 +15,78 @@ interface ChatSession {
   messageCount: number;
 }
 
+// Interface matching the backend Lead model
+interface Lead {
+  id: string;
+  company_name: string;
+  contact_name: string;
+  email: string;
+  phone?: string;
+  industry?: string;
+  company_size?: string;
+  status: string;
+  lead_score?: number;
+  created_at: string;
+  last_contact?: string;
+  next_follow_up?: string;
+  pain_points: string[];
+  budget_range?: string;
+  decision_timeline?: string;
+}
+
 export default function SalesPage() {
   const [currentLeadId, setCurrentLeadId] = useState<string | null>(null);
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoadingSessions, setIsLoadingSessions] = useState(false);
+  const [chatKey, setChatKey] = useState(0);
+
+  // Transform Lead data to ChatSession format
+  const transformLeadToSession = (lead: Lead): ChatSession => {
+    return {
+      id: lead.id,
+      title: lead.company_name || lead.contact_name || 'Unknown Company',
+      lastMessage: `${lead.contact_name} - ${lead.status}`,
+      timestamp: new Date(lead.created_at),
+      messageCount: 0 // This would need to come from chat history if available
+    };
+  };
 
   // Load chat sessions on component mount
   useEffect(() => {
-    loadChatSessions();
-  }, []);
-
-  const loadChatSessions = async () => {
-    setIsLoadingSessions(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/leads`);
-      if (response.ok) {
-        const data = await response.json();
-        const sessions: ChatSession[] = data.leads.map((lead: any) => ({
-          id: lead.id,
-          title: lead.company_name !== 'Unknown' ? lead.company_name : 
-                 lead.contact_name !== 'Unknown' ? lead.contact_name : 
-                 `Chat ${lead.id.slice(-6)}`,
-          lastMessage: lead.last_message || 'No messages yet',
-          timestamp: new Date(lead.last_message_time || lead.created_at),
-          messageCount: 0 // We'll update this if needed
-        }));
-        setChatSessions(sessions);
+    const fetchLeads = async () => {
+      setIsLoadingSessions(true);
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/leads`);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Raw API response:', data);
+          
+          // Handle both possible response formats
+          const leads = data.leads || data || [];
+          
+          // Transform leads to chat sessions
+          const sessions = leads.map(transformLeadToSession);
+          setChatSessions(sessions);
+        }
+      } catch (error) {
+        console.error('Error fetching leads:', error);
+      } finally {
+        setIsLoadingSessions(false);
       }
-    } catch (error) {
-      console.error('Error loading chat sessions:', error);
-    } finally {
-      setIsLoadingSessions(false);
-    }
-  };
+    };
+
+    fetchLeads();
+  }, []);
 
   const startNewChat = () => {
     setCurrentLeadId(null);
-    // Force a re-render by updating the key
+    setChatKey(prev => prev + 1);
   };
 
   const selectChat = (leadId: string) => {
     setCurrentLeadId(leadId);
+    setChatKey(prev => prev + 1);
   };
 
   const deleteChat = async (leadId: string, e: React.MouseEvent) => {
@@ -66,8 +96,8 @@ export default function SalesPage() {
   };
 
   const filteredSessions = chatSessions.filter(session =>
-    session.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    session.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
+    (session.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (session.lastMessage || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const formatTimestamp = (timestamp: Date) => {
@@ -185,19 +215,11 @@ export default function SalesPage() {
 
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col">
-          {currentLeadId ? (
-            <ChatInterface 
-              key={currentLeadId}
-              leadId={currentLeadId} 
-              onNewMessage={loadChatSessions}
-            />
-          ) : (
-            <ChatInterface 
-              key="new-chat"
-              leadId={null} 
-              onNewMessage={loadChatSessions}
-            />
-          )}
+          <ChatInterface 
+            key={currentLeadId ? `lead-${currentLeadId}-${chatKey}` : `new-chat-${chatKey}`}
+            leadId={currentLeadId} 
+            onNewMessage={() => {}}
+          />
         </div>
       </div>
     </Layout>
