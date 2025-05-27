@@ -111,6 +111,11 @@ export default function LeadManagement() {
     return new Date(dateString).toLocaleDateString();
   };
 
+  const handleStartChat = (leadId: string) => {
+    // Navigate to sales chat with lead ID
+    window.location.href = `/sales?leadId=${leadId}`;
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -306,7 +311,7 @@ export default function LeadManagement() {
                     <td className="py-4 px-6">
                       <div className="flex items-center space-x-2">
                         <button
-                          onClick={() => {/* Open chat with lead */}}
+                          onClick={() => handleStartChat(lead.id)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           title="Start conversation"
                         >
