@@ -42,6 +42,10 @@ export default function SalesPage() {
           timestamp: new Date(lead.last_message_time || lead.created_at),
           messageCount: 0 // We'll update this if needed
         }));
+  
+        // Sort sessions by timestamp in descending order
+        sessions.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  
         setChatSessions(sessions);
       }
     } catch (error) {
