@@ -148,7 +148,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
         conversation_stage: 'discovery'
       });
 
-      const response = await fetch(`${API_BASE_URL}/api/sales-chat`, {
+      const response = await fetch(`${API_BASE_URL}/api/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -162,27 +162,41 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
-        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.detail || errorData.message || errorMessage;
+        } catch (parseError) {
+          console.warn('Could not parse error response:', parseError);
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
       console.log('Backend response:', data);
+
+      // Validate response structure
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid response format from server');
+      }
 
       // Update current lead ID if it was generated
       if (data.lead_id && !currentLeadId) {
         setCurrentLeadId(data.lead_id);
       }
 
-      // Extract metadata from the response
+      // Extract metadata from the response with safe defaults
       const metadata = data.metadata || {};
       const quote = metadata.quote;
-      const recommendations = metadata.recommendations || [];
-      const nextSteps = metadata.next_steps || [];
+      const recommendations = Array.isArray(metadata.recommendations) ? metadata.recommendations : [];
+      const nextSteps = Array.isArray(metadata.next_steps) ? metadata.next_steps : [];
+
+      // Ensure we have a valid response message
+      const responseMessage = data.response || data.message || 'I apologize, but I encountered an issue processing your request.';
 
       const assistantMessage: Message = {
         id: `assistant_${Date.now()}`,
-        content: data.message || 'I apologize, but I encountered an issue processing your request.',
+        content: responseMessage,
         type: 'assistant',
         timestamp: new Date(),
         metadata: {
@@ -199,7 +213,11 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
       
       // Call onNewMessage callback if provided
       if (onNewMessage) {
-        onNewMessage();
+        try {
+          onNewMessage();
+        } catch (callbackError) {
+          console.error('Error in onNewMessage callback:', callbackError);
+        }
       }
 
     } catch (error) {
