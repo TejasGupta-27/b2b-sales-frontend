@@ -556,7 +556,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
       if (language) formData.append('language', language);
 
       // Call a transcription-only endpoint instead of the full chat endpoint
-      const response = await fetch(`${API_BASE_URL}/api/speech/transcribe`, {
+      const response = await fetch(`${API_BASE_URL}/api/speech/chat/voice`, {
         method: 'POST',
         body: formData,
       });
