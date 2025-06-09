@@ -23,7 +23,22 @@ export default function Layout({ children }: LayoutProps) {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+  const [isMounted, setIsMounted] = useState(false);
   const [backgroundParticles, setBackgroundParticles] = useState<Array<{id: number, x: number, y: number, delay: number}>>([]);
+
+  // Initialize mounted state
+  useEffect(() => {
+    setIsMounted(true);
+    
+    // Set initial window size
+    if (typeof window !== 'undefined') {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    }
+  }, []);
 
   // Initialize particles for background animation
   useEffect(() => {
@@ -38,26 +53,47 @@ export default function Layout({ children }: LayoutProps) {
 
   // Track mouse for subtle interactive effects
   useEffect(() => {
+    if (!isMounted) return;
+    
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
     };
     
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  }, [isMounted]);
+
+  // Track window resize
+  useEffect(() => {
+    if (!isMounted) return;
+    
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isMounted]);
 
   // Handle scroll to show/hide scroll-to-top button
   useEffect(() => {
+    if (!isMounted) return;
+    
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 400);
     };
     
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isMounted]);
 
   // Detect system dark mode preference
   useEffect(() => {
+    if (!isMounted) return;
+    
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     setIsDarkMode(mediaQuery.matches);
     
@@ -67,16 +103,34 @@ export default function Layout({ children }: LayoutProps) {
     
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
+  }, [isMounted]);
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle('dark');
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.toggle('dark');
+    }
   };
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
+
+  // Calculate mouse following gradient position safely
+  const getGradientPosition = () => {
+    if (!isMounted || windowSize.width === 0 || windowSize.height === 0) {
+      return { left: 0, top: 0 };
+    }
+    
+    return {
+      left: Math.max(0, Math.min(windowSize.width - 192, mousePosition.x - 96)),
+      top: Math.max(0, Math.min(windowSize.height - 192, mousePosition.y - 96))
+    };
+  };
+
+  const gradientPosition = getGradientPosition();
 
   return (
     <div className="min-h-screen w-full relative overflow-x-hidden">
@@ -99,15 +153,17 @@ export default function Layout({ children }: LayoutProps) {
           ))}
         </div>
 
-        {/* Subtle Mouse-following Gradient - Smaller and responsive */}
-        <div 
-          className="absolute w-48 h-48 sm:w-72 sm:h-72 lg:w-96 lg:h-96 bg-gradient-radial from-blue-500/5 via-purple-500/3 to-transparent rounded-full blur-3xl transition-all duration-700 ease-out pointer-events-none"
-          style={{
-            left: Math.max(0, Math.min(window.innerWidth - 192, mousePosition.x - 96)),
-            top: Math.max(0, Math.min(window.innerHeight - 192, mousePosition.y - 96)),
-            transform: 'translate3d(0, 0, 0)'
-          }}
-        />
+        {/* Subtle Mouse-following Gradient - Only render when mounted */}
+        {isMounted && (
+          <div 
+            className="absolute w-48 h-48 sm:w-72 sm:h-72 lg:w-96 lg:h-96 bg-gradient-radial from-blue-500/5 via-purple-500/3 to-transparent rounded-full blur-3xl transition-all duration-700 ease-out pointer-events-none"
+            style={{
+              left: gradientPosition.left,
+              top: gradientPosition.top,
+              transform: 'translate3d(0, 0, 0)'
+            }}
+          />
+        )}
 
         {/* Grid Pattern Overlay */}
         <div className="absolute inset-0 bg-grid-pattern opacity-[0.02] dark:opacity-[0.05]" />
@@ -139,18 +195,20 @@ export default function Layout({ children }: LayoutProps) {
         </div>
       </div>
 
-      {/* Floating Theme Toggle Button */}
-      <button
-        onClick={toggleDarkMode}
-        className="fixed bottom-4 right-4 z-50 p-3 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 hover:bg-white dark:hover:bg-gray-800 transition-all duration-200 hover:scale-110 group shadow-lg"
-        title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-      >
-        {isDarkMode ? (
-          <Sun className="w-5 h-5 text-amber-500 group-hover:rotate-180 transition-transform duration-300" />
-        ) : (
-          <Moon className="w-5 h-5 text-blue-600 group-hover:rotate-12 transition-transform duration-300" />
-        )}
-      </button>
+      {/* Floating Theme Toggle Button - Only render when mounted */}
+      {isMounted && (
+        <button
+          onClick={toggleDarkMode}
+          className="fixed bottom-4 right-4 z-50 p-3 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 hover:bg-white dark:hover:bg-gray-800 transition-all duration-200 hover:scale-110 group shadow-lg"
+          title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+        >
+          {isDarkMode ? (
+            <Sun className="w-5 h-5 text-amber-500 group-hover:rotate-180 transition-transform duration-300" />
+          ) : (
+            <Moon className="w-5 h-5 text-blue-600 group-hover:rotate-12 transition-transform duration-300" />
+          )}
+        </button>
+      )}
 
       {/* Main Content with Enhanced Styling */}
       <main className="relative z-10 min-h-screen w-full">
@@ -179,8 +237,8 @@ export default function Layout({ children }: LayoutProps) {
         </div>
       </main>
 
-      {/* Scroll to Top Button */}
-      {showScrollTop && (
+      {/* Scroll to Top Button - Only render when mounted */}
+      {isMounted && showScrollTop && (
         <button
           onClick={scrollToTop}
           className="fixed bottom-16 right-4 z-50 p-2 sm:p-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 hover:rotate-12 group"

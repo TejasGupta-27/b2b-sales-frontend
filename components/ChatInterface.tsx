@@ -544,11 +544,19 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
     try {
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.wav');
-      formData.append('lead_id', currentLeadId || '');
+      //Pass the current conversation ID
+      if (currentLeadId) {
+      formData.append('lead_id', currentLeadId);
+      }
+    
+      // Add conversation context
+      formData.append('conversation_stage', 'discovery');
+      formData.append('provider', 'azure_openai');
+
       if (language) formData.append('language', language);
 
       // Call a transcription-only endpoint instead of the full chat endpoint
-      const response = await fetch(`${API_BASE_URL}/api/speech/chat/voice`, {
+      const response = await fetch(`${API_BASE_URL}/api/speech/transcribe`, {
         method: 'POST',
         body: formData,
       });
@@ -558,7 +566,56 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
       }
 
       const data = await response.json();
-      console.log('Transcription response:', data);
+      console.log('Voice response:', data);
+      
+      // Update current lead ID if it was generated (for new conversations)
+      if (data.lead_id && !currentLeadId) {
+        setCurrentLeadId(data.lead_id);
+      }
+      
+      // If it's just transcription, put in input box
+      if (data.transcription && !data.response) {
+        setInput(data.transcription);
+        
+        // Focus and highlight the input
+        if (inputRef.current) {
+          inputRef.current.focus();
+          inputRef.current.style.boxShadow = '0 0 0 2px #3B82F6';
+          setTimeout(() => {
+            if (inputRef.current) {
+              inputRef.current.style.boxShadow = '';
+            }
+          }, 1000);
+        }
+      } 
+      // If it's a full chat response, add to messages
+      else if (data.response) {
+        // Add user message first (the transcribed voice)
+        if (data.transcription) {
+          const userMessage: Message = {
+            id: `user_voice_${Date.now()}`,
+            content: data.transcription,
+            type: 'user',
+            timestamp: new Date(),
+          };
+          setMessages(prev => [...prev, userMessage]);
+        }
+        
+        // Then add AI response
+        const assistantMessage: Message = {
+          id: `assistant_voice_${Date.now()}`,
+          content: data.response,
+          type: 'assistant',
+          timestamp: new Date(),
+          metadata: data.metadata || {}
+        };
+        setMessages(prev => [...prev, assistantMessage]);
+        
+        // Call onNewMessage callback
+        if (onNewMessage) {
+          onNewMessage();
+        }
+      }
       
       // Set the transcribed text in the input box instead of processing it
       if (data.transcription) {
