@@ -2,17 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Sparkles, 
-  Zap, 
-  Globe, 
-  Cpu, 
-  Brain,
-  ArrowUp,
-  Wifi,
-  WifiOff,
-  Sun,
-  Moon,
-  Monitor
+  ArrowUp
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -20,7 +10,6 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
@@ -90,28 +79,6 @@ export default function Layout({ children }: LayoutProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [isMounted]);
 
-  // Detect system dark mode preference
-  useEffect(() => {
-    if (!isMounted) return;
-    
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setIsDarkMode(mediaQuery.matches);
-    
-    const handleChange = (e: MediaQueryListEvent) => {
-      setIsDarkMode(e.matches);
-    };
-    
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [isMounted]);
-
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-    if (typeof document !== 'undefined') {
-      document.documentElement.classList.toggle('dark');
-    }
-  };
-
   const scrollToTop = () => {
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -135,14 +102,14 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen w-full relative overflow-x-hidden">
       {/* Animated Background */}
-      <div className="fixed inset-0 w-full h-full bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 dark:from-gray-900 dark:via-blue-900/10 dark:to-purple-900/10 transition-all duration-1000">
+      <div className="fixed inset-0 w-full h-full bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 transition-all duration-1000">
         
         {/* Animated Particles */}
         <div className="absolute inset-0 w-full h-full overflow-hidden">
           {backgroundParticles.map((particle) => (
             <div
               key={particle.id}
-              className="absolute w-1 h-1 bg-blue-400/20 dark:bg-blue-400/10 rounded-full animate-pulse"
+              className="absolute w-1 h-1 bg-blue-400/20 rounded-full animate-pulse"
               style={{
                 left: `${particle.x}%`,
                 top: `${particle.y}%`,
@@ -166,14 +133,14 @@ export default function Layout({ children }: LayoutProps) {
         )}
 
         {/* Grid Pattern Overlay */}
-        <div className="absolute inset-0 bg-grid-pattern opacity-[0.02] dark:opacity-[0.05]" />
+        <div className="absolute inset-0 bg-grid-pattern opacity-[0.02]" />
         
         {/* Interactive Floating Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {/* Glowing Orbs */}
-          <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-blue-400/40 dark:bg-blue-400/30 rounded-full floating-slow glow-pulse shadow-lg shadow-blue-400/20"></div>
-          <div className="absolute top-1/5 right-1/3 w-2 h-2 bg-purple-400/50 dark:bg-purple-400/40 rounded-full floating-medium glow-pulse shadow-lg shadow-purple-400/25" style={{animationDelay: '1.5s'}}></div>
-          <div className="absolute bottom-1/3 right-1/5 w-4 h-4 bg-pink-400/35 dark:bg-pink-400/25 rounded-full floating-slow glow-pulse shadow-lg shadow-pink-400/20" style={{animationDelay: '3s'}}></div>
+          <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-blue-400/40 rounded-full floating-slow glow-pulse shadow-lg shadow-blue-400/20"></div>
+          <div className="absolute top-1/5 right-1/3 w-2 h-2 bg-purple-400/50 rounded-full floating-medium glow-pulse shadow-lg shadow-purple-400/25" style={{animationDelay: '1.5s'}}></div>
+          <div className="absolute bottom-1/3 right-1/5 w-4 h-4 bg-pink-400/35 rounded-full floating-slow glow-pulse shadow-lg shadow-pink-400/20" style={{animationDelay: '3s'}}></div>
           
           {/* Gradient Lines */}
           <div className="absolute top-1/3 right-1/4 w-1 h-16 bg-gradient-to-b from-blue-500/60 via-purple-500/40 to-transparent rounded-full floating-medium rotate-12"></div>
@@ -181,34 +148,19 @@ export default function Layout({ children }: LayoutProps) {
           <div className="absolute top-2/3 left-1/3 w-12 h-1 bg-gradient-to-r from-transparent via-blue-400/60 to-transparent rounded-full floating-fast"></div>
           
           {/* Animated Borders */}
-          <div className="absolute top-1/2 right-1/6 w-6 h-6 border-2 border-amber-400/60 dark:border-amber-400/40 rounded-full floating-medium border-pulse" style={{animationDelay: '2.5s'}}></div>
-          <div className="absolute bottom-1/5 left-1/4 w-8 h-8 border border-cyan-400/50 dark:border-cyan-400/30 rounded-lg floating-slow rotate-45 border-pulse" style={{animationDelay: '4s'}}></div>
+          <div className="absolute top-1/2 right-1/6 w-6 h-6 border-2 border-amber-400/60 rounded-full floating-medium border-pulse" style={{animationDelay: '2.5s'}}></div>
+          <div className="absolute bottom-1/5 left-1/4 w-8 h-8 border border-cyan-400/50 rounded-lg floating-slow rotate-45 border-pulse" style={{animationDelay: '4s'}}></div>
           
           {/* Sparkle Effects */}
-          <div className="absolute top-1/6 left-1/2 w-1 h-1 bg-white/80 dark:bg-white/60 rounded-full sparkle" style={{animationDelay: '1s'}}></div>
-          <div className="absolute bottom-2/5 right-1/3 w-1 h-1 bg-white/70 dark:bg-white/50 rounded-full sparkle" style={{animationDelay: '3.5s'}}></div>
-          <div className="absolute top-3/5 left-1/5 w-1 h-1 bg-white/90 dark:bg-white/70 rounded-full sparkle" style={{animationDelay: '2.2s'}}></div>
+          <div className="absolute top-1/6 left-1/2 w-1 h-1 bg-white/80 rounded-full sparkle" style={{animationDelay: '1s'}}></div>
+          <div className="absolute bottom-2/5 right-1/3 w-1 h-1 bg-white/70 rounded-full sparkle" style={{animationDelay: '3.5s'}}></div>
+          <div className="absolute top-3/5 left-1/5 w-1 h-1 bg-white/90 rounded-full sparkle" style={{animationDelay: '2.2s'}}></div>
           
           {/* Interactive Gradient Blobs */}
           <div className="absolute top-1/8 right-1/5 w-16 h-16 bg-gradient-to-br from-blue-400/20 to-purple-400/15 rounded-full blur-sm floating-slow scale-pulse"></div>
           <div className="absolute bottom-1/6 left-1/8 w-20 h-20 bg-gradient-to-tr from-purple-400/15 to-pink-400/20 rounded-full blur-md floating-medium scale-pulse" style={{animationDelay: '3s'}}></div>
         </div>
       </div>
-
-      {/* Floating Theme Toggle Button - Only render when mounted */}
-      {isMounted && (
-        <button
-          onClick={toggleDarkMode}
-          className="fixed bottom-4 right-4 z-50 p-3 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 hover:bg-white dark:hover:bg-gray-800 transition-all duration-200 hover:scale-110 group shadow-lg"
-          title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-        >
-          {isDarkMode ? (
-            <Sun className="w-5 h-5 text-amber-500 group-hover:rotate-180 transition-transform duration-300" />
-          ) : (
-            <Moon className="w-5 h-5 text-blue-600 group-hover:rotate-12 transition-transform duration-300" />
-          )}
-        </button>
-      )}
 
       {/* Main Content with Enhanced Styling */}
       <main className="relative z-10 min-h-screen w-full">
@@ -241,7 +193,7 @@ export default function Layout({ children }: LayoutProps) {
       {isMounted && showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-16 right-4 z-50 p-2 sm:p-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 hover:rotate-12 group"
+          className="fixed bottom-4 right-4 z-50 p-2 sm:p-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 hover:rotate-12 group"
         >
           <ArrowUp className="w-4 h-4 sm:w-5 sm:h-5 group-hover:-translate-y-0.5 transition-transform duration-200" />
         </button>
@@ -254,12 +206,6 @@ export default function Layout({ children }: LayoutProps) {
             linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
             linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px);
           background-size: 20px 20px;
-        }
-        
-        .dark .bg-grid-pattern {
-          background-image: 
-            linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
         }
 
         .animate-in {
@@ -428,67 +374,36 @@ export default function Layout({ children }: LayoutProps) {
           background: linear-gradient(to bottom, #2563eb, #7c3aed);
         }
 
-        .dark ::-webkit-scrollbar-track {
-          background: rgba(255,255,255,0.05);
-        }
-
         /* Ensure no elements overflow */
         * {
           box-sizing: border-box;
         }
 
-        /* Dark mode text visibility fixes */
-        .dark {
-          color: #f3f4f6;
+        /* Light mode styling */
+        body {
+          color: #1f2937;
         }
 
-        .dark input,
-        .dark textarea,
-        .dark select {
-          background-color: #1f2937 !important;
-          color: #f3f4f6 !important;
-          border: 1px solid #374151 !important;
+        input,
+        textarea,
+        select {
+          background-color: rgba(255, 255, 255, 0.8);
+          color: #1f2937;
+          border-color: rgba(209, 213, 219, 0.5);
         }
 
-        .dark input:focus,
-        .dark textarea:focus,
-        .dark select:focus {
-          background-color: #111827 !important;
-          border-color: #4f46e5 !important;
+        input:focus,
+        textarea:focus,
+        select:focus {
+          background-color: rgba(255, 255, 255, 0.95);
+          border-color: #4f46e5;
           outline: none;
           box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
 
-        .dark input::placeholder,
-        .dark textarea::placeholder {
-          color: #9ca3af !important;
-        }
-
-        /* Ensure text elements are visible in dark mode */
-        .dark p,
-        .dark h1,
-        .dark h2,
-        .dark h3,
-        .dark h4,
-        .dark h5,
-        .dark h6,
-        .dark span,
-        .dark div,
-        .dark label {
-          color: #f3f4f6;
-        }
-
-        /* Light mode text ensuring */
-        body:not(.dark) {
-          color: #1f2937;
-        }
-
-        body:not(.dark) input,
-        body:not(.dark) textarea,
-        body:not(.dark) select {
-          background-color: rgba(255, 255, 255, 0.8);
-          color: #1f2937;
-          border-color: rgba(209, 213, 219, 0.5);
+        input::placeholder,
+        textarea::placeholder {
+          color: #6b7280;
         }
       `}</style>
     </div>
