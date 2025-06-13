@@ -101,7 +101,6 @@ body {
   animation-delay: -0.16s;
 }
 
-
 .scrollbar-hide::-webkit-scrollbar { 
   display: none;             /* Safari and Chrome */
 }

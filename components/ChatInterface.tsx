@@ -689,55 +689,121 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
   };
 
   const handleVoiceMessage = async (audioBlob: Blob) => {
-    setIsTranscribing(true);
-    setIsVoiceProcessing(true);
-    setIsVoiceListening(false);
+    // Check if we're in voice mode - if so, handle voice conversation
+    if (voiceMode) {
+      setIsTranscribing(true);
+      setIsVoiceProcessing(true);
+      setIsVoiceListening(false);
 
-    try {
-      const formData = new FormData();
-      formData.append('audio', audioBlob, 'recording.wav');
+      try {
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'recording.wav');
 
-      if (currentLeadId) {
-        formData.append('lead_id', currentLeadId);
+        if (currentLeadId) {
+          formData.append('lead_id', currentLeadId);
+        }
+        formData.append('conversation_stage', 'discovery');
+        formData.append('provider', 'azure_openai');
+        if (language) formData.append('language', language);
+
+        const response = await fetch(`${API_BASE_URL}/api/speech/chat/voice`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.lead_id && !currentLeadId) {
+          setCurrentLeadId(data.lead_id);
+        }
+
+        // For voice mode: play audio response
+        if (data.metadata?.speech_data?.audio_data) {
+          const messageId = `voice_response_${Date.now()}`;
+          await handleSpeak(data.message || data.response, messageId, data.metadata.speech_data.audio_data);
+        }
+
+        if (onNewMessage) {
+          onNewMessage();
+        }
+      } catch (error) {
+        const errorMessage: Message = {
+          id: `error_voice_${Date.now()}`,
+          content: `⚠️ Voice message failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          type: 'assistant',
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      } finally {
+        setIsTranscribing(false);
+        setIsVoiceProcessing(false);
       }
-      formData.append('conversation_stage', 'discovery');
-      formData.append('provider', 'azure_openai');
-      if (language) formData.append('language', language);
+    } else {
+      // Regular voice input - convert to text chat
+      setIsTranscribing(true);
 
-      const response = await fetch(`${API_BASE_URL}/api/speech/chat/voice`, {
-        method: 'POST',
-        body: formData,
-      });
+      try {
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'recording.wav');
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        if (currentLeadId) {
+          formData.append('lead_id', currentLeadId);
+        }
+        formData.append('conversation_stage', 'discovery');
+        formData.append('provider', 'azure_openai');
+        if (language) formData.append('language', language);
+
+        const response = await fetch(`${API_BASE_URL}/api/speech/chat/voice`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.lead_id && !currentLeadId) {
+          setCurrentLeadId(data.lead_id);
+        }
+
+        // For regular voice input: add messages to chat
+        const userMessage: Message = {
+          id: `user_voice_${Date.now()}`,
+          content: data.metadata?.transcription_metadata?.text || "Voice message",
+          type: 'user',
+          timestamp: new Date(),
+        };
+
+        const assistantMessage: Message = {
+          id: `assistant_voice_${Date.now()}`,
+          content: data.message || data.response,
+          type: 'assistant',
+          timestamp: new Date(),
+          metadata: data.metadata,
+        };
+
+        setMessages(prev => [...prev, userMessage, assistantMessage]);
+
+        if (onNewMessage) {
+          onNewMessage();
+        }
+      } catch (error) {
+        const errorMessage: Message = {
+          id: `error_voice_${Date.now()}`,
+          content: `⚠️ Voice message failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          type: 'assistant',
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      } finally {
+        setIsTranscribing(false);
       }
-
-      const data = await response.json();
-
-      if (data.lead_id && !currentLeadId) {
-        setCurrentLeadId(data.lead_id);
-      }
-
-      if (data.metadata?.speech_data?.audio_data) {
-        const messageId = `voice_response_${Date.now()}`;
-        await handleSpeak(data.message || data.response, messageId, data.metadata.speech_data.audio_data);
-      }
-
-      if (onNewMessage) {
-        onNewMessage();
-      }
-    } catch (error) {
-      const errorMessage: Message = {
-        id: `error_voice_${Date.now()}`,
-        content: `⚠️ Voice message failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        type: 'assistant',
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsTranscribing(false);
-      setIsVoiceProcessing(false);
     }
   };
 
