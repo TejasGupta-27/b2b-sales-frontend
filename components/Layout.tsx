@@ -23,6 +23,7 @@ export default function Layout({ children }: LayoutProps) {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [windowDimensions, setWindowDimensions] = useState({ width: 0, height: 0 });
   const [backgroundParticles, setBackgroundParticles] = useState<Array<{id: number, x: number, y: number, delay: number}>>([]);
 
   // Initialize particles for background animation
@@ -34,6 +35,22 @@ export default function Layout({ children }: LayoutProps) {
       delay: Math.random() * 20
     }));
     setBackgroundParticles(particles);
+  }, []);
+
+  // Track window dimensions
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+    
+    // Set initial dimensions
+    handleResize();
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Track mouse for subtle interactive effects
@@ -103,8 +120,8 @@ export default function Layout({ children }: LayoutProps) {
         <div 
           className="absolute w-48 h-48 sm:w-72 sm:h-72 lg:w-96 lg:h-96 bg-gradient-radial from-blue-500/5 via-purple-500/3 to-transparent rounded-full blur-3xl transition-all duration-700 ease-out pointer-events-none"
           style={{
-            left: Math.max(0, Math.min(window.innerWidth - 192, mousePosition.x - 96)),
-            top: Math.max(0, Math.min(window.innerHeight - 192, mousePosition.y - 96)),
+            left: Math.max(0, Math.min(windowDimensions.width - 192, mousePosition.x - 96)),
+            top: Math.max(0, Math.min(windowDimensions.height - 192, mousePosition.y - 96)),
             transform: 'translate3d(0, 0, 0)'
           }}
         />
