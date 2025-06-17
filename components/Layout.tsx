@@ -43,22 +43,6 @@ export default function Layout({ children }: LayoutProps) {
     setBackgroundParticles(particles);
   }, []);
 
-  // Track window dimensions
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight
-      });
-    };
-    
-    // Set initial dimensions
-    handleResize();
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
   // Track mouse for subtle interactive effects
   useEffect(() => {
     if (!isMounted) return;
