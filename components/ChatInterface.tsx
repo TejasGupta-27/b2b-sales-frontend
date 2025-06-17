@@ -402,12 +402,12 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
       }
     };
   }, [currentAudio]);
-
   const initializeNewChat = () => {
     const welcomeMessage: Message = {
       id: `welcome_${Date.now()}`,
       content:
         "👋 Hello! I'm your AI-powered B2B sales assistant. I'm here to help you discover the perfect technology solutions for your business. What challenges are you looking to solve today?",
+      text: "👋 Hello! I'm your AI-powered B2B sales assistant. I'm here to help you discover the perfect technology solutions for your business. What challenges are you looking to solve today?",
       type: 'assistant',
       timestamp: new Date(),
     };
@@ -435,6 +435,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
         const formattedMessages: Message[] = data.history.map((msg: any) => ({
           id: msg.id,
           content: msg.content,
+          text: msg.text || msg.content,
           type: msg.role,
           timestamp: new Date(msg.timestamp),
           metadata: msg.metadata,
@@ -456,6 +457,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
     const userMessage: Message = {
       id: `user_${Date.now()}`,
       content: input.trim(),
+      text: input.trim(),
       type: 'user',
       timestamp: new Date(),
     };
@@ -506,6 +508,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
       const assistantMessage: Message = {
         id: `assistant_${Date.now()}`,
         content: responseMessage,
+        text: responseMessage,
         type: 'assistant',
         timestamp: new Date(),
         metadata: {
@@ -530,6 +533,9 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
       const errorMessage: Message = {
         id: `error_${Date.now()}`,
         content: `⚠️ I apologize, but I'm having trouble connecting right now. Please try again in a moment. Error: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`,
+        text: `⚠️ I apologize, but I'm having trouble connecting right now. Please try again in a moment. Error: ${
           error instanceof Error ? error.message : 'Unknown error'
         }`,
         type: 'assistant',
@@ -734,6 +740,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
         const errorMessage: Message = {
           id: `error_voice_${Date.now()}`,
           content: `⚠️ Voice message failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          text: `⚠️ Voice message failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
           type: 'assistant',
           timestamp: new Date(),
         };
@@ -776,6 +783,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
         const userMessage: Message = {
           id: `user_voice_${Date.now()}`,
           content: data.metadata?.transcription_metadata?.text || "Voice message",
+          text: data.metadata?.transcription_metadata?.text || "Voice message",
           type: 'user',
           timestamp: new Date(),
         };
@@ -783,6 +791,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
         const assistantMessage: Message = {
           id: `assistant_voice_${Date.now()}`,
           content: data.message || data.response,
+          text: data.message || data.response,
           type: 'assistant',
           timestamp: new Date(),
           metadata: data.metadata,
@@ -797,6 +806,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
         const errorMessage: Message = {
           id: `error_voice_${Date.now()}`,
           content: `⚠️ Voice message failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          text: `⚠️ Voice message failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
           type: 'assistant',
           timestamp: new Date(),
         };
