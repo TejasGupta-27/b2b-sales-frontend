@@ -12,8 +12,11 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const [isMounted, setIsMounted] = useState(false);
+  
+
   const [backgroundParticles, setBackgroundParticles] = useState<Array<{id: number, x: number, y: number, delay: number}>>([]);
 
   // Initialize mounted state
@@ -38,6 +41,22 @@ export default function Layout({ children }: LayoutProps) {
       delay: Math.random() * 20
     }));
     setBackgroundParticles(particles);
+  }, []);
+
+  // Track window dimensions
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+    
+    // Set initial dimensions
+    handleResize();
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Track mouse for subtle interactive effects
@@ -131,6 +150,7 @@ export default function Layout({ children }: LayoutProps) {
             }}
           />
         )}
+
 
         {/* Grid Pattern Overlay */}
         <div className="absolute inset-0 bg-grid-pattern opacity-[0.02]" />
