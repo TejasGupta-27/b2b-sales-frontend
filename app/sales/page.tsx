@@ -4,6 +4,9 @@ import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { ShoppingCart, Plus, MessageSquare, Search, MoreHorizontal, Trash2 } from 'lucide-react';
 import ChatInterface from '@/components/ChatInterface';
+import { useLanguage } from '@/context/LanguageContext';
+import { translations } from "../../i18n";
+
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -21,6 +24,8 @@ export default function SalesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoadingSessions, setIsLoadingSessions] = useState(false);
   const [chatKey, setChatKey] = useState(0);
+  const { language } = useLanguage();
+  const t = translations[language];
 
   // Load chat sessions on component mount
   useEffect(() => {
@@ -104,7 +109,7 @@ export default function SalesPage() {
               className="w-full flex items-center justify-center space-x-2 bg-gray-800 hover:bg-gray-700 rounded-lg px-4 py-3 transition-colors"
             >
               <Plus className="w-4 h-4" />
-              <span className="font-medium">New Chat</span>
+              <span className="font-medium">{t.newChat || "New Chat"}</span>
             </button>
           </div>
 
@@ -114,7 +119,7 @@ export default function SalesPage() {
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search conversations..."
+                placeholder={t.searchPlaceholder || "Search conversations..."}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full bg-gray-800 text-white placeholder-gray-400 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -126,11 +131,11 @@ export default function SalesPage() {
           <div className="flex-1 overflow-y-auto">
             {isLoadingSessions ? (
               <div className="p-4 text-center text-gray-400">
-                Loading conversations...
+                {t.loading || "Loading conversations..."}
               </div>
             ) : filteredSessions.length === 0 ? (
               <div className="p-4 text-center text-gray-400">
-                {searchTerm ? 'No conversations found' : 'No conversations yet'}
+                {searchTerm ? t.noMatchesFound || "No conversations found" : t.noConversations || "No conversations yet"}
               </div>
             ) : (
               <div className="space-y-1 p-2">
@@ -179,8 +184,8 @@ export default function SalesPage() {
                 <ShoppingCart className="w-4 h-4 text-white" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium">Sales Agent</p>
-                <p className="text-xs text-gray-400">agent@company.com</p>
+                <p className="text-sm font-medium">{t.agentLabel || "Sales Agent"}</p>
+                <p className="text-xs text-gray-400">{t.agentEmail || "agent@company.com"}</p>
               </div>
               <button className="p-1 hover:bg-gray-800 rounded">
                 <MoreHorizontal className="w-4 h-4 text-gray-400" />

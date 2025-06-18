@@ -3,6 +3,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, User, Bot, Copy, ThumbsUp, ThumbsDown, Check, Sparkles, Zap, MessageCircle, Download, FileText, Mic, MicOff, Square } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { useLanguage } from '@/context/LanguageContext';
+import { translations } from "../i18n";
 
 interface Message {
   id: string;
@@ -288,10 +290,11 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const [language, setLanguage] = useState<string>('en'); // or whatever default you want
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const { language } = useLanguage();
+  const t = translations[language];
   const [isTranscribing, setIsTranscribing] = useState(false);
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -328,7 +331,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
   const initializeNewChat = () => {
     const welcomeMessage: Message = {
       id: `welcome_${Date.now()}`,
-      content: "👋 Hello! I'm your AI-powered B2B sales assistant. I'm here to help you discover the perfect technology solutions for your business. What challenges are you looking to solve today?",
+      content: t.greeting || "👋 Hello! I'm your AI-powered B2B sales assistant. I'm here to help you discover the perfect technology solutions for your business. What challenges are you looking to solve today?",
       type: 'assistant',
       timestamp: new Date(),
     };
@@ -634,8 +637,8 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
 
                 {/* Footer */}
                 <div className="flex items-center justify-between px-4 pb-2 text-xs text-gray-500">
-                  <span>Powered by AI</span>
-                  <span>Press Enter to send</span>
+                  <span>{t.aimessage || "Powered by AI"}</span>
+                  <span>{t.sendPlaceholder || "Press Enter to send"}</span>
                 </div>
               </div>
             </div>
@@ -680,10 +683,10 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
           {messages.length === 1 && (
             <div className="mt-3 flex flex-wrap gap-2">
               {[
-                "Tell me about your cloud solutions",
-                "What's your pricing model?",
-                "I need a custom quote",
-                "Show me security features"
+                t.question1 || "Tell me about your cloud solutions",
+                t.question2 || "What's your pricing model?",
+                t.question3 || "I need a custom quote",
+                t.question4 || "Show me security features"
               ].map((suggestion, index) => (
                 <button
                   key={index}
