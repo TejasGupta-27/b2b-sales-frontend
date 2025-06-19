@@ -28,7 +28,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { translations } from "../../i18n";
 
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://74.176.202.10:3001';
 
 interface ChatSession {
   id: string;
@@ -163,7 +163,7 @@ export default function SalesPage() {
                 <div className="w-6 h-6 bg-orange-500 rounded flex items-center justify-center">
                   <MessageSquare className="w-4 h-4 text-white" />
                 </div>
-                {sidebarOpen && <span className="font-bold text-gray-900">Sales Agent</span>}
+                {sidebarOpen && <span className="font-bold text-gray-900">{t.agentLabel || "Sales Agent"}</span>}
               </div>
               {sidebarOpen && (
                 <div className="flex items-center space-x-1">
@@ -356,11 +356,11 @@ export default function SalesPage() {
                 <h1 className="text-lg font-semibold text-gray-900">
                   {currentLeadId ? 
                     filteredSessions.find(s => s.id === currentLeadId)?.title || 'Chat' : 
-                    'New Conversation'
+                    t.newconvo||'New Conversation'
                   }
                 </h1>
                 <p className="text-sm text-gray-500">
-                  {currentLeadId ? 'Active conversation' : 'Start a new conversation with a lead'}
+                  {currentLeadId ? t.activeConversation||'Active conversation' : t.startConversation||'Start a new conversation with a lead'}
                 </p>
               </div>
             </div>

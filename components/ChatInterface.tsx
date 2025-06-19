@@ -21,7 +21,7 @@ interface ChatInterfaceProps {
   onNewMessage?: () => void;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://74.176.202.10:3001';
 
 function TypingIndicator() {
   return (
@@ -929,14 +929,14 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask about products, pricing, or request a quote..."
+              placeholder= {t.inputPlaceholder||"Ask about products, pricing, or request a quote..."}
               className="w-full rounded-2xl border border-indigo-300 resize-none px-4 py-3 text-sm text-gray-700 placeholder-gray-400 font-normal focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-all max-h-32 min-h-[56px] bg-white scrollbar-thin scrollbar-thumb-indigo-400 scrollbar-track-gray-200"
               rows={1}
               disabled={isLoading}
               aria-label="Message input"
             />
             <div className="absolute bottom-4 right-4 select-none text-xs font-normal text-gray-400">
-              Press Enter to send
+              {t.sendPlaceholder || "Press Enter to send"}
             </div>
           </div>
 
@@ -997,9 +997,11 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
           >
             <Send className="w-6 h-6" aria-hidden="true" />
           </button>
+        </div>
 
           {/* Quick Suggestions */}
           {messages.length === 1 && (
+          <div className="max-w-5xl mx-auto mt-4 flex justify-center">
             <div className="mt-3 flex flex-wrap gap-2">
               {[
                 t.question1 || "Tell me about your cloud solutions",
@@ -1010,15 +1012,15 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
                 <button
                   key={index}
                   onClick={() => setInput(suggestion)}
-                  className="px-3 py-2 text-xs bg-gray-100 border border-gray-200 rounded-full hover:bg-gray-200 transition-colors text-gray-700"
+                  className="px-3 py-2 text-sm bg-gray-100 border border-gray-200 rounded-full hover:bg-gray-200 transition-colors text-gray-700"
                 >
                   {suggestion}
                 </button>
               ))}
             </div>
+          </div>
           )}
 
-        </div>
       </footer>
     </div>
   );

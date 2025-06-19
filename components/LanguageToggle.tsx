@@ -7,10 +7,10 @@ export default function LanguageToggle() {
   return (
     <button
       onClick={toggleLanguage}
-      className="fixed bottom-20 right-4 z-50 p-3 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 hover:bg-white dark:hover:bg-gray-800 transition-all duration-200 hover:scale-110 group shadow-lg"
+      className="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded shadow-md hover:bg-gray-700 transitionfixed bottom-4 right-4 z-50 bg-gray-800 text-white px-4 py-2 rounded shadow hover:bg-gray-700 transition"
       title="切替: English / 日本語"
     >
-      {language === 'en' ? '🇬🇧 EN' : '🇯🇵 JP'}
+      {language === 'en' ? '🌐 EN' : '🌐 JP'}
     </button>
   );
 }

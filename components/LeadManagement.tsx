@@ -35,7 +35,7 @@
 //   decision_timeline?: string;
 // }
 
-// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://74.176.202.10:3001';
 
 // export default function LeadManagement() {
 //   const [leads, setLeads] = useState<Lead[]>([]);

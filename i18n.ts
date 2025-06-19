@@ -15,6 +15,10 @@ export const translations = {
     agentLabel: "Sales Agent",
     agentEmail: "agent@company.com",
     aimessage: "Powered by AI",
+    newconvo: "New Conversation",
+    startConversation: "Start a new conversation with a lead",
+    inputPlaceholder: "Ask about products, pricing, or request a quote...",
+    activeConversation: "Active conversation",
 
     // Home Page UI
     aiSalesTagline: "AI-Powered Sales Intelligence",
@@ -61,6 +65,10 @@ export const translations = {
     agentLabel: "営業担当",
     agentEmail: "エージェント@会社.com",
     aimessage: "AIによってパワード",
+    newconvo: "新しい会話",
+    startConversation: "リードと新しい会話を始めましょう",
+    inputPlaceholder: "製品、価格、または見積もりについてお問い合わせください...",
+    activeConversation: "アクティブな会話",
 
     // Home Page UI
     aiSalesTagline: "AI営業インテリジェンス",
