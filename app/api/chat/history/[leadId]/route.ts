@@ -4,10 +4,10 @@ const BACKEND_URL = process.env.BACKEND_URL || 'http://48.210.58.7:3001';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { leadId: string } }
+  context: { params: Promise<{ leadId: string }> }
 ) {
   try {
-    const { leadId } = params;
+    const { leadId } = await context.params;
     
     const response = await fetch(`${BACKEND_URL}/api/chat/history/${leadId}`, {
       method: 'GET',
