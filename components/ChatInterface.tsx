@@ -19,7 +19,7 @@ interface ChatInterfaceProps {
   onNewMessage?: () => void;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://48.210.58.7:3001';
 
 function TypingIndicator() {
   return (
@@ -1022,3 +1022,4 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
   );
 }
 
+  

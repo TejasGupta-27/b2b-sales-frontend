@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import ChatInterface from '@/components/ChatInterface';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://48.210.58.7:3001';
 
 interface ChatSession {
   id: string;
