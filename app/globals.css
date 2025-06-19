@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -97,6 +99,10 @@ body {
 
 .animate-bounce-custom:nth-child(2) {
   animation-delay: -0.16s;
+}
+
+.scrollbar-hide::-webkit-scrollbar { 
+  display: none;             /* Safari and Chrome */
 }
 
 /* Custom scrollbar */

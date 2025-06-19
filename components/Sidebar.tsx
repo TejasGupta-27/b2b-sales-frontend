@@ -1,5 +1,3 @@
-// // sidebar not in use right now,,,,, need to connect the backend
-
 // 'use client';
 
 // import { useState, useEffect, useRef } from 'react';
