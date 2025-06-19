@@ -1019,30 +1019,6 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
           )}
 
         </div>
-
-        {messages.length === 1 && (
-          <section
-            className="mt-5 max-w-5xl mx-auto flex flex-wrap gap-3"
-            aria-label="Quick suggestion buttons"
-          >
-            {[
-              'Tell me about your cloud solutions',
-              "What's your pricing model?",
-              'I need a custom quote',
-              'Show me security features',
-            ].map((suggestion, index) => (
-              <button
-                key={index}
-                onClick={() => setInput(suggestion)}
-                className="px-7 py-2 text-sm bg-blue-100 rounded-full hover:bg-blue-200 text-black-800 font-semibold shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                aria-label={`Quick suggestion: ${suggestion}`}
-                type="button"
-              >
-                {suggestion}
-              </button>
-            ))}
-          </section>
-        )}
       </footer>
     </div>
   );
