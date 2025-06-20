@@ -21,7 +21,7 @@ interface ChatInterfaceProps {
   onNewMessage?: () => void;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://74.176.202.10:3001';
+const API_BASE_URL = '/api';
 
 function TypingIndicator() {
   return (
@@ -423,7 +423,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
     if (!currentLeadId) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/chat/history/${currentLeadId}`);
+      const response = await fetch(`${API_BASE_URL}/chat/history/${currentLeadId}`);
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -472,7 +472,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/chat`, {
+      const response = await fetch(`${API_BASE_URL}/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -716,7 +716,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
         formData.append('provider', 'azure_openai');
         if (language) formData.append('language', language);
 
-        const response = await fetch(`${API_BASE_URL}/api/speech/chat/voice`, {
+        const response = await fetch(`${API_BASE_URL}/speech/chat/voice`, {
           method: 'POST',
           body: formData,
         });
@@ -768,7 +768,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
         formData.append('provider', 'azure_openai');
         if (language) formData.append('language', language);
 
-        const response = await fetch(`${API_BASE_URL}/api/speech/chat/voice`, {
+        const response = await fetch(`${API_BASE_URL}/speech/chat/voice`, {
           method: 'POST',
           body: formData,
         });
@@ -1026,3 +1026,4 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
   );
 }
 
+  

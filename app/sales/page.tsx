@@ -27,8 +27,7 @@ import ChatInterface from '@/components/ChatInterface';
 import { useLanguage } from '@/context/LanguageContext';
 import { translations } from "../../i18n";
 
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://74.176.202.10:3001';
+const API_BASE_URL = '/api';
 
 interface ChatSession {
   id: string;
@@ -60,7 +59,7 @@ export default function SalesPage() {
   const loadChatSessions = async () => {
     setIsLoadingSessions(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/leads`);
+      const response = await fetch(`${API_BASE_URL}/leads`);
       if (response.ok) {
         const data = await response.json();
         const sessions: ChatSession[] = data.leads.map((lead: any, index: number) => ({
