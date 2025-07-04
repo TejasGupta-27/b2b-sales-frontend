@@ -357,6 +357,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const { language } = useLanguage();
+  console.log('ChatInterface rendered with language:', language);
   const t = translations[language];
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
@@ -471,6 +472,18 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
     setInput('');
     setIsLoading(true);
 
+    // Map 'jp' to 'ja' for backend compatibility
+    const apiLang = language === 'jp' ? 'ja' : language;
+
+    // Log the payload for debugging
+    console.log("Sending chat request payload:", {
+      message: currentInput,
+      lead_id: currentLeadId,
+      conversation_stage: 'discovery',
+      provider: 'azure_openai',
+      language: apiLang,
+    });
+
     try {
       const response = await fetch(`${API_BASE_URL}/chat`, {
         method: 'POST',
@@ -482,6 +495,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
           lead_id: currentLeadId,
           conversation_stage: 'discovery',
           provider: 'azure_openai',
+          language: apiLang,
         }),
       });
 
@@ -1026,4 +1040,3 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
   );
 }
 
-  

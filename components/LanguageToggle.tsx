@@ -3,6 +3,7 @@ import { useLanguage } from '@/context/LanguageContext';
 
 export default function LanguageToggle() {
   const { language, toggleLanguage } = useLanguage();
+  console.log('LanguageToggle rendered with language:', language);
 
   return (
     <button
