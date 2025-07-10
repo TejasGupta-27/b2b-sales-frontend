@@ -4,7 +4,7 @@ const BACKEND_URL = process.env.BACKEND_URL || 'http://48.210.58.7:3001';
 
 export async function GET(request: NextRequest) {
   try {
-    // Forward the Authorization header from the frontend request (for consistency)
+    // Forward headers
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
@@ -13,8 +13,8 @@ export async function GET(request: NextRequest) {
     if (authHeader) {
       headers.Authorization = authHeader;
     }
-
-    const response = await fetch(`${BACKEND_URL}/api/auth/organizations/public`, {
+    
+    const response = await fetch(`${BACKEND_URL}/api/auth/usage`, {
       method: 'GET',
       headers,
     });
@@ -23,9 +23,9 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
-    console.error('Organizations API proxy error:', error);
+    console.error('Usage API proxy error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch organizations' },
+      { error: 'Failed to get usage statistics' },
       { status: 500 }
     );
   }
