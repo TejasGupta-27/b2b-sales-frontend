@@ -74,18 +74,57 @@ apiClient.interceptors.response.use(
 // Auth API functions
 export const authAPI = {
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
-    const response: AxiosResponse<LoginResponse> = await apiClient.post('/api/auth/login', credentials);
-    return response.data;
+    // Use relative URL to go through Next.js proxy
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(credentials),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || errorData.error || `HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
   },
 
   register: async (userData: RegisterRequest): Promise<User> => {
-    const response: AxiosResponse<User> = await apiClient.post('/api/auth/register', userData);
-    return response.data;
+    // Use relative URL to go through Next.js proxy
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || errorData.error || `HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
   },
 
   logout: async (): Promise<void> => {
     try {
-      await apiClient.post('/api/auth/logout');
+      // Use relative URL to go through Next.js proxy
+      const token = tokenManager.getToken();
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+      
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers,
+      });
     } catch (error) {
       // Continue with logout even if API call fails
       console.warn('Logout API call failed:', error);
@@ -96,18 +135,73 @@ export const authAPI = {
   },
 
   getCurrentUser: async (): Promise<User> => {
-    const response: AxiosResponse<User> = await apiClient.get('/api/auth/me');
-    return response.data;
+    // Use relative URL to go through Next.js proxy
+    const token = tokenManager.getToken();
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    
+    const response = await fetch('/api/auth/me', {
+      method: 'GET',
+      headers,
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
   },
 
   updateCurrentUser: async (updateData: Partial<User>): Promise<User> => {
-    const response: AxiosResponse<User> = await apiClient.put('/api/auth/me', updateData);
-    return response.data;
+    // Use relative URL to go through Next.js proxy
+    const token = tokenManager.getToken();
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    
+    const response = await fetch('/api/auth/me', {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(updateData),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
   },
 
   getUsageStats: async (): Promise<UsageStats> => {
-    const response: AxiosResponse<UsageStats> = await apiClient.get('/api/auth/usage');
-    return response.data;
+    // Use relative URL to go through Next.js proxy
+    const token = tokenManager.getToken();
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    
+    const response = await fetch('/api/auth/usage', {
+      method: 'GET',
+      headers,
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
   },
 
   getPublicOrganizations: async (): Promise<Organization[]> => {
