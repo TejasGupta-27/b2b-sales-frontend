@@ -2,13 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://48.210.58.7:3001';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Forward the Authorization header from the frontend request
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+    
+    const authHeader = request.headers.get('authorization');
+    if (authHeader) {
+      headers.Authorization = authHeader;
+    }
+
     const response = await fetch(`${BACKEND_URL}/api/leads`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
     });
 
     const data = await response.json();

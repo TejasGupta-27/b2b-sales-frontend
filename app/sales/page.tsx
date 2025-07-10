@@ -1,7 +1,11 @@
-'use client';
+"use client";
 
 import React, { useState, useEffect } from 'react';
-import Layout from '@/components/Layout';
+import ProtectedRoute from '../../components/auth/ProtectedRoute';
+import UserProfile from '../../components/UserProfile';
+import ChatInterface from '../../components/ChatInterface';
+import { useAuth } from '../../lib/auth/context';
+import apiClient from '../../lib/auth/api';
 import { 
   ShoppingCart, 
   Plus, 
@@ -23,9 +27,6 @@ import {
   TrendingUp,
   Users
 } from 'lucide-react';
-import ChatInterface from '@/components/ChatInterface';
-
-const API_BASE_URL = '/api';
 
 interface ChatSession {
   id: string;
@@ -36,6 +37,7 @@ interface ChatSession {
 }
 
 export default function SalesPage() {
+  const { user } = useAuth();
   const [currentLeadId, setCurrentLeadId] = useState<string | null>(null);
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -55,24 +57,30 @@ export default function SalesPage() {
   const loadChatSessions = async () => {
     setIsLoadingSessions(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/leads`);
-      if (response.ok) {
-        const data = await response.json();
-        const sessions: ChatSession[] = data.leads.map((lead: any, index: number) => ({
-          id: lead.id,
-          title: lead.company_name !== 'Unknown' ? lead.company_name : 
-                 lead.contact_name !== 'Unknown' ? lead.contact_name : 
-                 `Chat ${lead.id.slice(-6)}`,
-          lastMessage: lead.last_message || 'No messages yet',
-          timestamp: new Date(lead.last_message_time || lead.created_at),
-          messageCount: Math.floor(Math.random() * 20) + 1
-        }));
-  
-        sessions.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-        setChatSessions(sessions);
-      }
-    } catch (error) {
+      // Use apiClient with authentication headers instead of plain fetch
+      const response = await apiClient.get('/api/leads');
+      const data = response.data;
+      
+      const sessions: ChatSession[] = data.leads.map((lead: any, index: number) => ({
+        id: lead.id,
+        title: lead.company_name !== 'Unknown' ? lead.company_name : 
+               lead.contact_name !== 'Unknown' ? lead.contact_name : 
+               `Chat ${lead.id.slice(-6)}`,
+        lastMessage: lead.last_message || 'No messages yet',
+        timestamp: new Date(lead.last_message_time || lead.created_at),
+        messageCount: Math.floor(Math.random() * 20) + 1
+      }));
+
+      sessions.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+      setChatSessions(sessions);
+    } catch (error: any) {
       console.error('Error loading chat sessions:', error);
+      // If we get a 403, it might be a role permission issue
+      if (error.response?.status === 403) {
+        console.warn('403 Forbidden: User may not have permission to access leads');
+        // Set empty sessions for now
+        setChatSessions([]);
+      }
     } finally {
       setIsLoadingSessions(false);
     }
@@ -128,7 +136,7 @@ export default function SalesPage() {
   };
 
   return (
-    <Layout>
+    <ProtectedRoute>
       <div className="flex h-screen bg-white">
         {/* Mobile Overlay */}
         {sidebarOpen && (
@@ -162,9 +170,7 @@ export default function SalesPage() {
               </div>
               {sidebarOpen && (
                 <div className="flex items-center space-x-1">
-                  <button className="p-1 hover:bg-gray-200 rounded">
-                    <Settings className="w-4 h-4 text-gray-500" />
-                  </button>
+                  <UserProfile />
                   <button
                     onClick={toggleSidebar}
                     className="p-1 hover:bg-gray-200 rounded lg:hidden"
@@ -294,11 +300,11 @@ export default function SalesPage() {
               <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
                 <User className="w-4 h-4 text-white" />
               </div>
-              {sidebarOpen && (
+              {sidebarOpen && user && (
                 <>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">Sales Agent</p>
-                    <p className="text-xs text-gray-500 truncate">agent@company.com</p>
+                    <p className="text-sm font-medium text-gray-900 truncate">{user.first_name} {user.last_name}</p>
+                    <p className="text-xs text-gray-500 truncate">{user.email}</p>
                   </div>
                   <button className="p-1 hover:bg-gray-200 rounded">
                     <MoreHorizontal className="w-4 h-4 text-gray-500" />
@@ -327,7 +333,7 @@ export default function SalesPage() {
         </div>
 
         {/* Main Chat Area */}
-            <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'ml-80' : 'ml-16'}`}>
+        <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'ml-80' : 'ml-16'}`}>
           {/* Top Bar */}
           <div className="bg-white border-b border-gray-200 p-4">
             <div className="flex items-center space-x-3">
@@ -363,6 +369,6 @@ export default function SalesPage() {
           </div>
         </div>
       </div>
-    </Layout>
+    </ProtectedRoute>
   );
 }

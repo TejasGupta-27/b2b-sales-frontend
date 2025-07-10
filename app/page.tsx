@@ -2,9 +2,12 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { MessageSquare, ShoppingCart, TrendingUp, Users, Sparkles, ArrowRight, Bot, Shield, Clock } from 'lucide-react';
+import { MessageSquare, ShoppingCart, TrendingUp, Users, Sparkles, ArrowRight, Bot, Shield, Clock, LogIn, UserPlus } from 'lucide-react';
+import { useAuth } from '../lib/auth/context';
 
 export default function Home() {
+  const { isAuthenticated, user } = useAuth();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-sky-100 relative overflow-hidden">
       {/* Animated background with light elements */}
@@ -13,7 +16,50 @@ export default function Home() {
         <div className="absolute -bottom-20 -left-20 w-40 h-40 md:w-80 md:h-80 bg-blue-50/50 rounded-full blur-3xl animate-pulse delay-1000"></div>
         <div className="absolute top-1/3 left-1/4 w-20 h-20 md:w-60 md:h-60 bg-indigo-100/40 rounded-full blur-2xl animate-pulse delay-500"></div>
         <div className="absolute bottom-1/3 right-1/4 w-20 h-20 md:w-40 md:h-40 bg-cyan-100/50 rounded-full blur-2xl animate-pulse delay-700"></div>  
+      </div>
+
+      {/* Navigation Header */}
+      <nav className="relative z-10 px-4 py-4 md:py-6">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-gradient-to-r from-sky-500 to-blue-500 rounded-lg flex items-center justify-center">
+              <Bot className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xl font-bold text-gray-900">B2B Sales Agent</span>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            {isAuthenticated && user ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-gray-600">Welcome, {user.first_name}!</span>
+                <Link
+                  href="/sales"
+                  className="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                >
+                  Go to Dashboard
+                </Link>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-3">
+                <Link
+                  href="/auth/login"
+                  className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>Sign In</span>
+                </Link>
+                <Link
+                  href="/auth/register"
+                  className="flex items-center space-x-2 bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>Sign Up</span>
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
+      </nav>
 
       <div className="container mx-auto px-4 py-4 md:py-8 relative z-10 max-w-7xl">
         {/* Hero Section */}
@@ -37,14 +83,34 @@ export default function Home() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center items-center mb-4 md:mb-6 px-4">
-            <Link 
-              href="/sales"
-              className="group inline-flex items-center px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-600 hover:to-blue-600 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-2xl hover:shadow-sky-400/30 hover:scale-105 transform w-full sm:w-auto"
-            >
-              <Bot className="w-4 h-4 md:w-5 md:h-5 mr-2 group-hover:animate-bounce" />
-              Start AI Conversation
-              <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-            </Link>
+            {isAuthenticated ? (
+              <Link 
+                href="/sales"
+                className="group inline-flex items-center px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-600 hover:to-blue-600 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-2xl hover:shadow-sky-400/30 hover:scale-105 transform w-full sm:w-auto"
+              >
+                <Bot className="w-4 h-4 md:w-5 md:h-5 mr-2 group-hover:animate-bounce" />
+                Go to Dashboard
+                <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            ) : (
+              <>
+                <Link 
+                  href="/auth/register"
+                  className="group inline-flex items-center px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-600 hover:to-blue-600 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-2xl hover:shadow-sky-400/30 hover:scale-105 transform w-full sm:w-auto"
+                >
+                  <Bot className="w-4 h-4 md:w-5 md:h-5 mr-2 group-hover:animate-bounce" />
+                  Get Started Free
+                  <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <Link 
+                  href="/auth/login"
+                  className="group inline-flex items-center px-6 md:px-8 py-3 md:py-4 bg-white/80 backdrop-blur-sm border border-sky-200 hover:border-sky-300 text-sky-600 hover:text-sky-700 font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:bg-white w-full sm:w-auto"
+                >
+                  <LogIn className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                  Sign In
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Trust indicators */}
@@ -117,17 +183,19 @@ export default function Home() {
         </div>
 
         {/* Footer CTA */}
-        <div className="text-center pb-12">
-          <h3 className="text-2xl md:text-3xl font-bold text-slate-800 mb-4">Ready to transform your sales process?</h3>
-          <p className="text-slate-600 max-w-xl mx-auto mb-6">Join thousands of businesses already accelerating their sales with AI</p>
-          <Link 
-            href="/sales"
-            className="inline-flex items-center px-8 py-3 bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-600 hover:to-blue-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:shadow-sky-300/30 transition-all duration-300"
-          >
-            Get Started Now
-            <ArrowRight className="w-5 h-5 ml-2" />
-          </Link>
-        </div>
+        {!isAuthenticated && (
+          <div className="text-center pb-12">
+            <h3 className="text-2xl md:text-3xl font-bold text-slate-800 mb-4">Ready to transform your sales process?</h3>
+            <p className="text-slate-600 max-w-xl mx-auto mb-6">Join thousands of businesses already accelerating their sales with AI</p>
+            <Link 
+              href="/auth/register"
+              className="inline-flex items-center px-8 py-3 bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-600 hover:to-blue-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:shadow-sky-300/30 transition-all duration-300"
+            >
+              Get Started Now
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

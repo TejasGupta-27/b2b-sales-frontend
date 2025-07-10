@@ -6,8 +6,17 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     
+    // Forward the Authorization header from the frontend request
+    const headers: HeadersInit = {};
+    
+    const authHeader = request.headers.get('authorization');
+    if (authHeader) {
+      headers.Authorization = authHeader;
+    }
+    
     const response = await fetch(`${BACKEND_URL}/api/speech/chat/voice`, {
       method: 'POST',
+      headers,
       body: formData,
     });
 

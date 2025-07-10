@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, User, Bot, Copy, ThumbsUp, ThumbsDown, Check, Sparkles, Volume2, X } from 'lucide-react';
 import { SpeakerSimpleHigh, Microphone, MicrophoneSlash } from 'phosphor-react';
 import ReactMarkdown from 'react-markdown';
+import apiClient, { tokenManager } from '../lib/auth/api';
 
 interface Message {
   id: string;
@@ -19,7 +20,7 @@ interface ChatInterfaceProps {
   onNewMessage?: () => void;
 }
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 function TypingIndicator() {
   return (
@@ -419,17 +420,18 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
     if (!currentLeadId) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/chat/history/${currentLeadId}`);
+      const response = await apiClient.get(`/api/chat/history/${currentLeadId}`);
+      
+      if (response.status === 404) {
+        initializeNewChat();
+        return;
+      }
 
-      if (!response.ok) {
-        if (response.status === 404) {
-          initializeNewChat();
-          return;
-        }
+      if (response.status >= 400) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data = response.data;
 
       if (data.history && Array.isArray(data.history)) {
         const formattedMessages: Message[] = data.history.map((msg: any) => ({
@@ -468,30 +470,24 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: currentInput,
-          lead_id: currentLeadId,
-          conversation_stage: 'discovery',
-          provider: 'azure_openai',
-        }),
+      const response = await apiClient.post('/api/chat', {
+        message: currentInput,
+        lead_id: currentLeadId,
+        conversation_stage: 'discovery',
+        provider: 'azure_openai',
       });
 
-      if (!response.ok) {
+      if (response.status >= 400) {
         let errorMessage = `HTTP error! status: ${response.status}`;
         try {
-          const errorData = await response.json();
+          const errorData = response.data;
           errorMessage = errorData.detail || errorData.message || errorMessage;
         } catch (parseError) {}
 
         throw new Error(errorMessage);
       }
 
-      const data = await response.json();
+      const data = response.data;
 
       if (data.lead_id && !currentLeadId) {
         setCurrentLeadId(data.lead_id);
@@ -712,8 +708,15 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
         formData.append('provider', 'azure_openai');
         if (language) formData.append('language', language);
 
-        const response = await fetch(`${API_BASE_URL}/speech/chat/voice`, {
+        const token = tokenManager.getToken();
+        const headers: HeadersInit = {};
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/api/speech/chat/voice`, {
           method: 'POST',
+          headers,
           body: formData,
         });
 
@@ -764,8 +767,15 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
         formData.append('provider', 'azure_openai');
         if (language) formData.append('language', language);
 
-        const response = await fetch(`${API_BASE_URL}/speech/chat/voice`, {
+        const token = tokenManager.getToken();
+        const headers: HeadersInit = {};
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/api/speech/chat/voice`, {
           method: 'POST',
+          headers,
           body: formData,
         });
 

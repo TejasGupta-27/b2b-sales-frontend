@@ -9,11 +9,19 @@ export async function GET(
   try {
     const { leadId } = await context.params;
     
+    // Forward the Authorization header from the frontend request
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+    
+    const authHeader = request.headers.get('authorization');
+    if (authHeader) {
+      headers.Authorization = authHeader;
+    }
+    
     const response = await fetch(`${BACKEND_URL}/api/chat/history/${leadId}`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
     });
 
     const data = await response.json();
