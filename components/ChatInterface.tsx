@@ -420,18 +420,31 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
     if (!currentLeadId) return;
 
     try {
-      const response = await apiClient.get(`/api/chat/history/${currentLeadId}`);
+      // Use relative URL to go through Next.js proxy
+      const token = tokenManager.getToken();
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`/api/chat/history/${currentLeadId}`, {
+        method: 'GET',
+        headers,
+      });
       
       if (response.status === 404) {
         initializeNewChat();
         return;
       }
 
-      if (response.status >= 400) {
+      if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = response.data;
+      const data = await response.json();
 
       if (data.history && Array.isArray(data.history)) {
         const formattedMessages: Message[] = data.history.map((msg: any) => ({
@@ -470,24 +483,38 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
     setIsLoading(true);
 
     try {
-      const response = await apiClient.post('/api/chat', {
-        message: currentInput,
-        lead_id: currentLeadId,
-        conversation_stage: 'discovery',
-        provider: 'azure_openai',
+      // Use relative URL to go through Next.js proxy
+      const token = tokenManager.getToken();
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          message: currentInput,
+          lead_id: currentLeadId,
+          conversation_stage: 'discovery',
+          provider: 'azure_openai',
+        }),
       });
 
-      if (response.status >= 400) {
+      if (!response.ok) {
         let errorMessage = `HTTP error! status: ${response.status}`;
         try {
-          const errorData = response.data;
+          const errorData = await response.json();
           errorMessage = errorData.detail || errorData.message || errorMessage;
         } catch (parseError) {}
 
         throw new Error(errorMessage);
       }
 
-      const data = response.data;
+      const data = await response.json();
 
       if (data.lead_id && !currentLeadId) {
         setCurrentLeadId(data.lead_id);
@@ -714,7 +741,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
           headers.Authorization = `Bearer ${token}`;
         }
 
-        const response = await fetch(`${API_BASE_URL}/api/speech/chat/voice`, {
+        const response = await fetch('/api/speech/chat/voice', {
           method: 'POST',
           headers,
           body: formData,
@@ -773,7 +800,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
           headers.Authorization = `Bearer ${token}`;
         }
 
-        const response = await fetch(`${API_BASE_URL}/api/speech/chat/voice`, {
+        const response = await fetch('/api/speech/chat/voice', {
           method: 'POST',
           headers,
           body: formData,

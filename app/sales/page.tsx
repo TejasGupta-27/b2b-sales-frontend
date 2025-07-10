@@ -5,7 +5,7 @@ import ProtectedRoute from '../../components/auth/ProtectedRoute';
 import UserProfile from '../../components/UserProfile';
 import ChatInterface from '../../components/ChatInterface';
 import { useAuth } from '../../lib/auth/context';
-import apiClient from '../../lib/auth/api';
+import { tokenManager } from '../../lib/auth/api';
 import { 
   ShoppingCart, 
   Plus, 
@@ -57,9 +57,26 @@ export default function SalesPage() {
   const loadChatSessions = async () => {
     setIsLoadingSessions(true);
     try {
-      // Use apiClient with authentication headers instead of plain fetch
-      const response = await apiClient.get('/api/leads');
-      const data = response.data;
+      // Use relative URL to go through Next.js proxy
+      const token = tokenManager.getToken();
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/leads', {
+        method: 'GET',
+        headers,
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
       
       const sessions: ChatSession[] = data.leads.map((lead: any, index: number) => ({
         id: lead.id,
@@ -76,7 +93,7 @@ export default function SalesPage() {
     } catch (error: any) {
       console.error('Error loading chat sessions:', error);
       // If we get a 403, it might be a role permission issue
-      if (error.response?.status === 403) {
+      if (error.message?.includes('403')) {
         console.warn('403 Forbidden: User may not have permission to access leads');
         // Set empty sessions for now
         setChatSessions([]);
