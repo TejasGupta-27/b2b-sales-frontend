@@ -149,7 +149,7 @@ export default function RegisterPage() {
 
           {/* Registration form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Name fields */}
+            {/* Name fields */}2
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
@@ -162,7 +162,7 @@ export default function RegisterPage() {
                   required
                   value={formData.firstName}
                   onChange={handleInputChange}
-                  className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white/70 backdrop-blur-sm transition-all duration-200"
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-[#2C2F48] text-white placeholder-gray-400 transition-all duration-200"
                   placeholder="John"
                   disabled={isLoading}
                 />
@@ -208,25 +208,25 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Role and Organization */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
-                  Role
-                </label>
-                <select
-                  id="role"
-                  name="role"
-                  value={formData.role}
-                  onChange={handleInputChange}
-                  className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white/70 backdrop-blur-sm transition-all duration-200"
-                  disabled={isLoading}
-                >
-                  <option value={UserRole.SALES_AGENT}>Sales Agent</option>
-                  <option value={UserRole.SALES_MANAGER}>Sales Manager</option>
-                  <option value={UserRole.VIEWER}>Viewer</option>
-                </select>
-              </div>
+            <div>
+              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
+                Role
+              </label>
+              <select
+                id="role"
+                name="role"
+                value={formData.role}
+                onChange={handleInputChange}
+                className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-[#37414f] text-gray-400 placeholder-gray-400 transition-all duration-200 appearance-none"
+                disabled={isLoading}
+              >
+                <option value={UserRole.SALES_AGENT}>Sales Agent</option>
+                <option value={UserRole.SALES_MANAGER}>Sales Manager</option>
+                <option value={UserRole.VIEWER}>Viewer</option>
+              </select>
+
+            </div>
+
               <div>
                 <label htmlFor="organizationId" className="block text-sm font-medium text-gray-700 mb-2">
                   Organization
@@ -240,21 +240,19 @@ export default function RegisterPage() {
                     name="organizationId"
                     value={formData.organizationId}
                     onChange={handleInputChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white/70 backdrop-blur-sm transition-all duration-200"
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-[#37414f] text-gray-400 placeholder-gray-400 transition-all duration-200 appearance-none"
                     disabled={isLoading || loadingOrganizations}
                     required
                   >
                     <option value="">
-                      {loadingOrganizations 
-                        ? "Loading organizations..." 
-                        : "Select an organization"}
+                      {loadingOrganizations ? "Loading organizations..." : "Select an organization"}
                     </option>
                     {!loadingOrganizations && organizations.length === 0 && (
                       <option value="" disabled>
                         No organizations available. Contact administrator.
                       </option>
                     )}
-                    {organizations.map(org => (
+                    {organizations.map((org) => (
                       <option key={org.id} value={org.id}>
                         {org.name}
                       </option>
@@ -262,7 +260,6 @@ export default function RegisterPage() {
                   </select>
                 </div>
               </div>
-            </div>
 
             {/* Password field */}
             <div>
@@ -409,4 +406,4 @@ export default function RegisterPage() {
       </div>
     </div>
   );
-} 
+}
