@@ -764,8 +764,33 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          sampleRate: 44100,  // Standard sample rate
+          channelCount: 1,    // Mono
+          echoCancellation: true,
+          noiseSuppression: true
+        }
+      });
+      
+      // Try to use WAV format if supported, otherwise fall back to WebM
+      let mimeType = 'audio/webm;codecs=opus'; // Default fallback
+      let fileExtension = 'webm';
+      
+      if (MediaRecorder.isTypeSupported('audio/wav')) {
+        mimeType = 'audio/wav';
+        fileExtension = 'wav';
+      } else if (MediaRecorder.isTypeSupported('audio/webm;codecs=pcm')) {
+        mimeType = 'audio/webm;codecs=pcm';
+        fileExtension = 'webm';
+      }
+      
+      console.log('Using MIME type:', mimeType);
+      
+      const recorder = new MediaRecorder(stream, { 
+        mimeType: mimeType 
+      });
+      
       const chunks: Blob[] = [];
 
       recorder.ondataavailable = event => {
@@ -775,9 +800,16 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
       };
 
       recorder.onstop = async () => {
-        const audioBlob = new Blob(chunks, { type: 'audio/wav' });
-        await handleVoiceMessage(audioBlob);
-
+        // Create blob with the actual recorded format
+        const audioBlob = new Blob(chunks, { type: mimeType });
+        
+        console.log('Audio blob created:', {
+          size: audioBlob.size,
+          type: audioBlob.type,
+          actualMimeType: recorder.mimeType
+        });
+        
+        await handleVoiceMessage(audioBlob, fileExtension);
         stream.getTracks().forEach(track => track.stop());
       };
 
@@ -788,7 +820,9 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
       if (voiceMode) {
         setIsVoiceListening(true);
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error('Recording error:', error);
+    }
   };
 
   const stopRecording = () => {
@@ -802,7 +836,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
     }
   };
 
-  const handleVoiceMessage = async (audioBlob: Blob) => {
+  const handleVoiceMessage = async (audioBlob: Blob, fileExtension: string = 'webm') => {
     // Check if we're in voice mode - if so, handle voice conversation
     if (voiceMode) {
       setIsTranscribing(true);
@@ -811,7 +845,13 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
 
       try {
         const formData = new FormData();
-        formData.append('audio', audioBlob, 'recording.wav');
+        
+        // Use the correct file extension based on actual format
+        const fileName = `recording.${fileExtension}`;
+        formData.append('audio', audioBlob, fileName);
+        
+        // Add audio format info for backend processing
+        formData.append('audio_format', audioBlob.type);
 
         if (currentLeadId) {
           formData.append('lead_id', currentLeadId);
@@ -870,7 +910,13 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
 
       try {
         const formData = new FormData();
-        formData.append('audio', audioBlob, 'recording.wav');
+        
+        // Use the correct file extension based on actual format
+        const fileName = `recording.${fileExtension}`;
+        formData.append('audio', audioBlob, fileName);
+        
+        // Add audio format info for backend processing
+        formData.append('audio_format', audioBlob.type);
 
         if (currentLeadId) {
           formData.append('lead_id', currentLeadId);
@@ -937,7 +983,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
         setIsTranscribing(false);
       }
     }
-  };
+};
 
   const handleVoiceClick = () => {
     if (isRecording) {
