@@ -6,6 +6,8 @@ import { SpeakerSimpleHigh, Microphone, MicrophoneSlash } from 'phosphor-react';
 import ReactMarkdown from 'react-markdown';
 import apiClient, { tokenManager } from '../lib/auth/api';
 
+
+// Add this after the imports
 const translations = {
   en: {
     placeholder: "Ask about products, pricing, or request a quote...",
@@ -38,7 +40,8 @@ const translations = {
       "What's your pricing model?",
       'I need a custom quote',
       'Show me security features',
-    ]
+    ],
+    quickSuggestion: "Quick suggestion", // Added for suggestion buttons aria-label
   },
   ja: {
     placeholder: "製品、価格、見積もりについてお聞きください...",
@@ -71,7 +74,8 @@ const translations = {
       '料金体系はどうなっていますか？',
       'カスタム見積もりが必要です',
       'セキュリティ機能を見せてください',
-    ]
+    ],
+    quickSuggestion: "クイック提案", // Added for suggestion buttons aria-label
   }
 };
 
@@ -124,7 +128,7 @@ function VoiceModeOverlay({
   isProcessing,
   onClose,
   onMicClick,
-  language,
+  language, // Added language prop
 }: VoiceModeOverlayProps) {
   if (!isActive) return null;
 
@@ -234,14 +238,14 @@ function MessageBubble({
   copiedId,
   onSpeak,
   playingAudioId,
-  language,
+  language, // Added language prop
 }: {
   message: Message;
   onCopy: (text: string, id: string) => void;
   copiedId: string | null;
   onSpeak: (text: string, id: string) => void;
   playingAudioId: string | null;
-  language: 'en' | 'ja';
+  language: 'en' | 'ja'; // Added language prop type
 }) {
   const [isVisible, setIsVisible] = useState(false);
   const [reaction, setReaction] = useState<'up' | 'down' | null>(null);
@@ -329,6 +333,8 @@ function MessageBubble({
               >
                 {message.content}
               </ReactMarkdown>
+
+              {/* Suggestions/metadata rendering could be enhanced here if needed */}
             </div>
 
             {message.type === 'assistant' && (
@@ -422,7 +428,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const [language, setLanguage] = useState<'en' | 'ja'>('en');
+  const [language, setLanguage] = useState<'en' | 'ja'>('en'); // Language state initialization
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
@@ -434,6 +440,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
   const [isVoiceSpeaking, setIsVoiceSpeaking] = useState(false);
   const [isVoiceProcessing, setIsVoiceProcessing] = useState(false);
 
+  // Scroll to bottom on new messages
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -474,7 +481,9 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
     };
   }, [currentAudio]);
 
+  // New useEffect to reinitialize welcome message when language changes
   useEffect(() => {
+    // Only reinitialize if it's the initial welcome message
     if (messages.length === 1 && messages[0].id.startsWith('welcome_')) {
       initializeNewChat();
     }
@@ -496,6 +505,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
     if (!currentLeadId) return;
 
     try {
+      // Use relative URL to go through Next.js proxy
       const token = tokenManager.getToken();
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
@@ -558,6 +568,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
     setIsLoading(true);
 
     try {
+      // Use relative URL to go through Next.js proxy
       const token = tokenManager.getToken();
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
@@ -575,7 +586,6 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
           lead_id: currentLeadId,
           conversation_stage: 'discovery',
           provider: 'azure_openai',
-          language: language,
         }),
       });
 
@@ -793,6 +803,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
   };
 
   const handleVoiceMessage = async (audioBlob: Blob) => {
+    // Check if we're in voice mode - if so, handle voice conversation
     if (voiceMode) {
       setIsTranscribing(true);
       setIsVoiceProcessing(true);
@@ -807,7 +818,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
         }
         formData.append('conversation_stage', 'discovery');
         formData.append('provider', 'azure_openai');
-        formData.append('language', language);
+        if (language) formData.append('language', language);
 
         const token = tokenManager.getToken();
         const headers: HeadersInit = {};
@@ -831,6 +842,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
           setCurrentLeadId(data.lead_id);
         }
 
+        // For voice mode: play audio response
         if (data.metadata?.speech_data?.audio_data) {
           const messageId = `voice_response_${Date.now()}`;
           await handleSpeak(data.message || data.response, messageId, data.metadata.speech_data.audio_data);
@@ -853,6 +865,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
         setIsVoiceProcessing(false);
       }
     } else {
+      // Regular voice input - convert to text chat
       setIsTranscribing(true);
 
       try {
@@ -864,7 +877,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
         }
         formData.append('conversation_stage', 'discovery');
         formData.append('provider', 'azure_openai');
-        formData.append('language', language);
+        if (language) formData.append('language', language);
 
         const token = tokenManager.getToken();
         const headers: HeadersInit = {};
@@ -888,6 +901,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
           setCurrentLeadId(data.lead_id);
         }
 
+        // For regular voice input: add messages to chat
         const userMessage: Message = {
           id: `user_voice_${Date.now()}`,
           content: data.metadata?.transcription_metadata?.text || "Voice message",
@@ -989,7 +1003,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
         isProcessing={isVoiceProcessing}
         onClose={toggleVoiceMode}
         onMicClick={handleVoiceMicClick}
-        language={language}
+        language={language} // Pass language prop
       />
 
       <div className="flex-1 overflow-y-auto max-w-5xl mx-auto w-full px-6 py-8 space-y-8">
@@ -1001,11 +1015,11 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
             copiedId={copiedId}
             onSpeak={handleSpeak}
             playingAudioId={playingAudioId}
-            language={language}
+            language={language} // Pass language prop
           />
         ))}
 
-        {isLoading && <TypingIndicator language={language} />}
+        {isLoading && <TypingIndicator language={language} />} {/* Pass language prop */}
 
         <div ref={messagesEndRef} />
       </div>
@@ -1029,16 +1043,16 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
             />
           </button>
 
-          <button
-            onClick={() => setLanguage(language === 'en' ? 'ja' : 'en')}
-            className="p-3 rounded-xl transition-all shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400 bg-gray-100 hover:bg-gray-200 text-gray-600"
-            title={language === 'en' ? 'Switch to Japanese' : 'Switch to English'}
-            aria-label={language === 'en' ? 'Switch to Japanese' : 'Switch to English'}
-          >
-            <span className="w-6 h-6 flex items-center justify-center font-bold text-sm">
-              {language === 'en' ? '日本語' : 'EN'}
-            </span>
-          </button>
+            <button
+              onClick={() => setLanguage(language === 'en' ? 'ja' : 'en')}
+              className="p-3 rounded-xl transition-all shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400 bg-gray-100 hover:bg-gray-200 text-gray-600"
+              title={language === 'en' ? 'Switch to Japanese' : 'Switch to English'}
+              aria-label={language === 'en' ? 'Switch to Japanese' : 'Switch to English'}
+            >
+              <span className="w-6 h-6 flex items-center justify-center font-bold text-sm">
+                {language === 'en' ? 'JA' : 'EN'}
+              </span>
+            </button>
 
           <div className="flex-1 relative">
             <textarea
@@ -1125,7 +1139,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
                 key={index}
                 onClick={() => setInput(suggestion)}
                 className="px-7 py-2 text-sm bg-blue-100 rounded-full hover:bg-blue-200 text-black-800 font-semibold shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                aria-label={`Quick suggestion: ${suggestion}`}
+                aria-label={`${translations[language].quickSuggestion}: ${suggestion}`}
                 type="button"
               >
                 {suggestion}
