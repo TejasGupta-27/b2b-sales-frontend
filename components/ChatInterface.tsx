@@ -1012,7 +1012,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
         setPlayingAudioId(null);
       }
 
-      if (recorderRef.current && recorderRef.current.state !== 'inactive') {
+      if (recorderRef.current) {
         recorderRef.current.stop();
         setIsRecording(false);
       }
