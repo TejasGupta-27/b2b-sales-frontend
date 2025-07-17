@@ -6,6 +6,79 @@ import { SpeakerSimpleHigh, Microphone, MicrophoneSlash } from 'phosphor-react';
 import ReactMarkdown from 'react-markdown';
 import apiClient, { tokenManager } from '../lib/auth/api';
 
+
+// Add this after the imports
+const translations = {
+  en: {
+    placeholder: "Ask about products, pricing, or request a quote...",
+    aiThinking: "AI is thinking...",
+    voiceMode: "Voice Mode",
+    listening: "Listening...",
+    speaking: "Speaking...",
+    processing: "Processing...",
+    readyToTalk: "Ready to talk",
+    speakNow: "Speak now or press the button to stop",
+    aiResponding: "AI is responding",
+    pressMic: "Press the mic button to start",
+    stopListening: "Stop listening",
+    startListening: "Start listening",
+    copyMessage: "Copy message",
+    playAudio: "Play audio",
+    stopAudio: "Stop audio",
+    goodResponse: "Good response",
+    poorResponse: "Poor response",
+    sendMessage: "Send message",
+    pressEnter: "Press Enter to send",
+    stopRecording: "Stop recording",
+    transcribing: "Transcribing...",
+    recordVoice: "Record voice message",
+    exitVoiceMode: "Exit voice mode",
+    enterVoiceMode: "Enter voice mode",
+    welcomeMessage: "👋 Hello! I'm your AI-powered B2B sales assistant. I'm here to help you discover the perfect technology solutions for your business. What challenges are you looking to solve today?",
+    suggestions: [
+      'Tell me about your cloud solutions',
+      "What's your pricing model?",
+      'I need a custom quote',
+      'Show me security features',
+    ],
+    quickSuggestion: "Quick suggestion", // Added for suggestion buttons aria-label
+  },
+  ja: {
+    placeholder: "製品、価格、見積もりについてお聞きください...",
+    aiThinking: "AIが考えています...",
+    voiceMode: "音声モード",
+    listening: "聞いています...",
+    speaking: "話しています...",
+    processing: "処理中...",
+    readyToTalk: "話す準備ができました",
+    speakNow: "今話すか、ボタンを押して停止してください",
+    aiResponding: "AIが応答しています",
+    pressMic: "マイクボタンを押して開始してください",
+    stopListening: "聞くのを停止",
+    startListening: "聞き始める",
+    copyMessage: "メッセージをコピー",
+    playAudio: "音声を再生",
+    stopAudio: "音声を停止",
+    goodResponse: "良い応答",
+    poorResponse: "悪い応答",
+    sendMessage: "メッセージを送信",
+    pressEnter: "Enterを押して送信",
+    stopRecording: "録音を停止",
+    transcribing: "文字起こし中...",
+    recordVoice: "音声メッセージを録音",
+    exitVoiceMode: "音声モードを終了",
+    enterVoiceMode: "音声モードに入る",
+    welcomeMessage: "👋 こんにちは！私はAI搭載のB2B営業アシスタントです。あなたのビジネスに最適なテクノロジーソリューションを見つけるお手伝いをします。今日はどのような課題を解決したいですか？",
+    suggestions: [
+      'クラウドソリューションについて教えてください',
+      '料金体系はどうなっていますか？',
+      'カスタム見積もりが必要です',
+      'セキュリティ機能を見せてください',
+    ],
+    quickSuggestion: "クイック提案", // Added for suggestion buttons aria-label
+  }
+};
+
 interface Message {
   id: string;
   content: string;
@@ -22,7 +95,7 @@ interface ChatInterfaceProps {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-function TypingIndicator() {
+function TypingIndicator({ language }: { language: 'en' | 'ja' }) {
   return (
     <div className="flex items-center space-x-4 max-w-4xl mx-auto px-4">
       <div className="flex flex-col h-full bg-gradient-to-br from-indigo-200 to-cyan-200 rounded-full p-2 shadow-md">
@@ -32,7 +105,7 @@ function TypingIndicator() {
         <div className="w-4 h-4 bg-indigo-600 rounded-full animate-bounce"></div>
         <div className="w-4 h-4 bg-indigo-500 rounded-full animate-bounce delay-150"></div>
         <div className="w-4 h-4 bg-indigo-400 rounded-full animate-bounce delay-300"></div>
-        <span className="ml-4 text-sm font-semibold text-gray-600">AI is thinking...</span>
+        <span className="ml-4 text-sm font-semibold text-gray-600">{translations[language].aiThinking}</span>
       </div>
     </div>
   );
@@ -45,6 +118,7 @@ interface VoiceModeOverlayProps {
   isProcessing: boolean;
   onClose: () => void;
   onMicClick: () => void;
+  language: 'en' | 'ja';
 }
 
 function VoiceModeOverlay({
@@ -54,6 +128,7 @@ function VoiceModeOverlay({
   isProcessing,
   onClose,
   onMicClick,
+  language, // Added language prop
 }: VoiceModeOverlayProps) {
   if (!isActive) return null;
 
@@ -63,12 +138,12 @@ function VoiceModeOverlay({
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold text-indigo-700 flex items-center gap-3">
             <SpeakerSimpleHigh weight="fill" className="text-indigo-600" size={26} />
-            Voice Mode
+            {translations[language].voiceMode}
           </h2>
           <button
             onClick={onClose}
             className="p-2 rounded-full hover:bg-red-100 text-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1"
-            aria-label="Close voice mode overlay"
+            aria-label={translations[language].exitVoiceMode}
           >
             <X className="w-6 h-6" />
           </button>
@@ -115,19 +190,19 @@ function VoiceModeOverlay({
 
           <p className="text-lg font-semibold text-center text-gray-800 select-none">
             {isListening
-              ? 'Listening...'
+              ? translations[language].listening
               : isSpeaking
-              ? 'Speaking...'
+              ? translations[language].speaking
               : isProcessing
-              ? 'Processing...'
-              : 'Ready to talk'}
+              ? translations[language].processing
+              : translations[language].readyToTalk}
           </p>
           <p className="text-gray-500 text-center mt-1 select-none">
             {isListening
-              ? 'Speak now or press the button to stop'
+              ? translations[language].speakNow
               : isSpeaking
-              ? 'AI is responding'
-              : 'Press the mic button to start'}
+              ? translations[language].aiResponding
+              : translations[language].pressMic}
           </p>
         </div>
 
@@ -143,7 +218,7 @@ function VoiceModeOverlay({
             } text-white transform hover:scale-105`}
             disabled={isSpeaking || isProcessing}
             aria-pressed={isListening}
-            aria-label={isListening ? 'Stop listening' : 'Start listening'}
+            aria-label={isListening ? translations[language].stopListening : translations[language].startListening}
           >
             {isListening ? (
               <MicrophoneSlash weight="fill" size={32} />
@@ -163,12 +238,14 @@ function MessageBubble({
   copiedId,
   onSpeak,
   playingAudioId,
+  language, // Added language prop
 }: {
   message: Message;
   onCopy: (text: string, id: string) => void;
   copiedId: string | null;
   onSpeak: (text: string, id: string) => void;
   playingAudioId: string | null;
+  language: 'en' | 'ja'; // Added language prop type
 }) {
   const [isVisible, setIsVisible] = useState(false);
   const [reaction, setReaction] = useState<'up' | 'down' | null>(null);
@@ -265,8 +342,8 @@ function MessageBubble({
                 <div className="flex items-center space-x-3">
                   <button
                     onClick={() => onCopy(message.content, message.id)}
-                    aria-label="Copy message"
-                    title="Copy message"
+                    aria-label={translations[language].copyMessage}
+                    title={translations[language].copyMessage}
                     className="p-3 rounded-xl text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400"
                   >
                     {copiedId === message.id ? (
@@ -278,8 +355,8 @@ function MessageBubble({
 
                   <button
                     onClick={() => onSpeak(message.content, message.id)}
-                    aria-label={playingAudioId === message.id ? 'Stop audio' : 'Play audio'}
-                    title={playingAudioId === message.id ? 'Stop audio' : 'Play audio'}
+                    aria-label={playingAudioId === message.id ? translations[language].stopAudio : translations[language].playAudio}
+                    title={playingAudioId === message.id ? translations[language].stopAudio : translations[language].playAudio}
                     className={`p-3 rounded-xl transition-transform transform focus:outline-none focus:ring-2 ${
                       playingAudioId === message.id
                         ? 'text-indigo-600 bg-indigo-100 scale-110'
@@ -302,8 +379,8 @@ function MessageBubble({
 
                   <button
                     onClick={() => handleReaction('up')}
-                    aria-label="Mark response as good"
-                    title="Good response"
+                    aria-label={translations[language].goodResponse}
+                    title={translations[language].goodResponse}
                     className={`p-3 rounded-xl transition-transform transform focus:outline-none focus:ring-2 focus:ring-green-500 ${
                       reaction === 'up'
                         ? 'text-green-600 bg-green-100 animate-pulse'
@@ -315,8 +392,8 @@ function MessageBubble({
 
                   <button
                     onClick={() => handleReaction('down')}
-                    aria-label="Mark response as poor"
-                    title="Poor response"
+                    aria-label={translations[language].poorResponse}
+                    title={translations[language].poorResponse}
                     className={`p-3 rounded-xl transition-transform transform focus:outline-none focus:ring-2 focus:ring-red-500 ${
                       reaction === 'down'
                         ? 'text-red-600 bg-red-100 animate-pulse'
@@ -351,7 +428,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const [language, setLanguage] = useState<string>('en');
+  const [language, setLanguage] = useState<'en' | 'ja'>('en'); // Language state initialization
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
@@ -403,12 +480,20 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
       }
     };
   }, [currentAudio]);
+
+  // New useEffect to reinitialize welcome message when language changes
+  useEffect(() => {
+    // Only reinitialize if it's the initial welcome message
+    if (messages.length === 1 && messages[0].id.startsWith('welcome_')) {
+      initializeNewChat();
+    }
+  }, [language]);
+
   const initializeNewChat = () => {
     const welcomeMessage: Message = {
       id: `welcome_${Date.now()}`,
-      content:
-        "👋 Hello! I'm your AI-powered B2B sales assistant. I'm here to help you discover the perfect technology solutions for your business. What challenges are you looking to solve today?",
-      text: "👋 Hello! I'm your AI-powered B2B sales assistant. I'm here to help you discover the perfect technology solutions for your business. What challenges are you looking to solve today?",
+      content: translations[language].welcomeMessage,
+      text: translations[language].welcomeMessage,
       type: 'assistant',
       timestamp: new Date(),
     };
@@ -918,6 +1003,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
         isProcessing={isVoiceProcessing}
         onClose={toggleVoiceMode}
         onMicClick={handleVoiceMicClick}
+        language={language} // Pass language prop
       />
 
       <div className="flex-1 overflow-y-auto max-w-5xl mx-auto w-full px-6 py-8 space-y-8">
@@ -929,10 +1015,11 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
             copiedId={copiedId}
             onSpeak={handleSpeak}
             playingAudioId={playingAudioId}
+            language={language} // Pass language prop
           />
         ))}
 
-        {isLoading && <TypingIndicator />}
+        {isLoading && <TypingIndicator language={language} />} {/* Pass language prop */}
 
         <div ref={messagesEndRef} />
       </div>
@@ -946,8 +1033,8 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
                 ? 'bg-indigo-600 text-white hover:bg-indigo-700'
                 : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
             }`}
-            title={voiceMode ? 'Exit voice mode' : 'Enter voice mode'}
-            aria-label={voiceMode ? 'Exit voice mode' : 'Enter voice mode'}
+            title={voiceMode ? translations[language].exitVoiceMode : translations[language].enterVoiceMode}
+            aria-label={voiceMode ? translations[language].exitVoiceMode : translations[language].enterVoiceMode}
           >
             <SpeakerSimpleHigh
               weight={voiceMode ? 'fill' : 'regular'}
@@ -956,20 +1043,31 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
             />
           </button>
 
+            <button
+              onClick={() => setLanguage(language === 'en' ? 'ja' : 'en')}
+              className="p-3 rounded-xl transition-all shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400 bg-gray-100 hover:bg-gray-200 text-gray-600"
+              title={language === 'en' ? 'Switch to Japanese' : 'Switch to English'}
+              aria-label={language === 'en' ? 'Switch to Japanese' : 'Switch to English'}
+            >
+              <span className="w-6 h-6 flex items-center justify-center font-bold text-sm">
+                {language === 'en' ? '日本語' : 'EN'}
+              </span>
+            </button>
+
           <div className="flex-1 relative">
             <textarea
               ref={inputRef}
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask about products, pricing, or request a quote..."
+              placeholder={translations[language].placeholder}
               className="w-full rounded-2xl border border-indigo-300 resize-none px-4 py-3 text-sm text-gray-700 placeholder-gray-400 font-normal focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-all max-h-32 min-h-[56px] bg-white scrollbar-thin scrollbar-thumb-indigo-400 scrollbar-track-gray-200"
               rows={1}
               disabled={isLoading}
               aria-label="Message input"
             />
             <div className="absolute bottom-4 right-4 select-none text-xs font-normal text-gray-400">
-              Press Enter to send
+              {translations[language].pressEnter}
             </div>
           </div>
 
@@ -985,17 +1083,17 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
             } ${isLoading || isTranscribing ? 'cursor-not-allowed opacity-60' : ''}`}
             title={
               isRecording
-                ? 'Stop recording'
+                ? translations[language].stopRecording
                 : isTranscribing
-                ? 'Transcribing...'
-                : 'Record voice message'
+                ? translations[language].transcribing
+                : translations[language].recordVoice
             }
             aria-label={
               isRecording
-                ? 'Stop recording voice message'
+                ? translations[language].stopRecording
                 : isTranscribing
-                ? 'Transcribing voice message'
-                : 'Record voice message'
+                ? translations[language].transcribing
+                : translations[language].recordVoice
             }
           >
             {isRecording ? (
@@ -1025,7 +1123,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
                 ? 'bg-indigo-600 text-white hover:bg-indigo-700'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
-            aria-label="Send message"
+            aria-label={translations[language].sendMessage}
           >
             <Send className="w-6 h-6" aria-hidden="true" />
           </button>
@@ -1036,17 +1134,12 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
             className="mt-5 max-w-5xl mx-auto flex flex-wrap gap-3"
             aria-label="Quick suggestion buttons"
           >
-            {[
-              'Tell me about your cloud solutions',
-              "What's your pricing model?",
-              'I need a custom quote',
-              'Show me security features',
-            ].map((suggestion, index) => (
+            {translations[language].suggestions.map((suggestion, index) => (
               <button
                 key={index}
                 onClick={() => setInput(suggestion)}
                 className="px-7 py-2 text-sm bg-blue-100 rounded-full hover:bg-blue-200 text-black-800 font-semibold shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                aria-label={`Quick suggestion: ${suggestion}`}
+                aria-label={`${translations[language].quickSuggestion}: ${suggestion}`}
                 type="button"
               >
                 {suggestion}
@@ -1058,5 +1151,3 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
     </div>
   );
 }
-
-  
