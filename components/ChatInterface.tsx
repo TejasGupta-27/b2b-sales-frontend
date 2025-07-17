@@ -5,7 +5,7 @@ import { Send, User, Bot, Copy, ThumbsUp, ThumbsDown, Check, Sparkles, Volume2, 
 import { SpeakerSimpleHigh, Microphone, MicrophoneSlash } from 'phosphor-react';
 import ReactMarkdown from 'react-markdown';
 import apiClient, { tokenManager } from '../lib/auth/api';
-
+import { convertWebmToWav } from 'webm-to-wav-converter';
 
 // Add this after the imports
 const translations = {
@@ -773,19 +773,17 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
         }
       });
       
-      // Try to use WAV format if supported, otherwise fall back to WebM
+      // Always use WebM since we'll convert to WAV client-side
       let mimeType = 'audio/webm;codecs=opus'; // Default fallback
-      let fileExtension = 'webm';
       
-      if (MediaRecorder.isTypeSupported('audio/wav')) {
-        mimeType = 'audio/wav';
-        fileExtension = 'wav';
-      } else if (MediaRecorder.isTypeSupported('audio/webm;codecs=pcm')) {
+      // Try to get the best quality WebM format
+      if (MediaRecorder.isTypeSupported('audio/webm;codecs=pcm')) {
         mimeType = 'audio/webm;codecs=pcm';
-        fileExtension = 'webm';
+      } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+        mimeType = 'audio/webm';
       }
       
-      console.log('Using MIME type:', mimeType);
+      console.log('Recording with MIME type:', mimeType);
       
       const recorder = new MediaRecorder(stream, { 
         mimeType: mimeType 
@@ -800,16 +798,17 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
       };
 
       recorder.onstop = async () => {
-        // Create blob with the actual recorded format
+        // Create blob with the recorded WebM format
         const audioBlob = new Blob(chunks, { type: mimeType });
         
-        console.log('Audio blob created:', {
+        console.log('Original audio blob created:', {
           size: audioBlob.size,
           type: audioBlob.type,
           actualMimeType: recorder.mimeType
         });
         
-        await handleVoiceMessage(audioBlob, fileExtension);
+        // Always pass 'webm' since we'll convert to WAV in handleVoiceMessage
+        await handleVoiceMessage(audioBlob, 'webm');
         stream.getTracks().forEach(track => track.stop());
       };
 
@@ -837,6 +836,28 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
   };
 
   const handleVoiceMessage = async (audioBlob: Blob, fileExtension: string = 'webm') => {
+    // Convert WebM to WAV client-side
+    let finalAudioBlob = audioBlob;
+    let finalFileExtension = fileExtension;
+    
+    if (audioBlob.type.includes('webm')) {
+      try {
+        console.log('Converting WebM to WAV...');
+        finalAudioBlob = await convertWebmToWav(audioBlob);
+        finalFileExtension = 'wav';
+        console.log('Conversion successful:', {
+          originalSize: audioBlob.size,
+          convertedSize: finalAudioBlob.size,
+          originalType: audioBlob.type,
+          convertedType: finalAudioBlob.type
+        });
+      } catch (error) {
+        console.error('WebM to WAV conversion failed:', error);
+        // Fallback to original blob if conversion fails
+        console.log('Using original WebM format as fallback');
+      }
+    }
+
     // Check if we're in voice mode - if so, handle voice conversation
     if (voiceMode) {
       setIsTranscribing(true);
@@ -846,12 +867,12 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
       try {
         const formData = new FormData();
         
-        // Use the correct file extension based on actual format
-        const fileName = `recording.${fileExtension}`;
-        formData.append('audio', audioBlob, fileName);
+        // Use the converted WAV file (or original if conversion failed)
+        const fileName = `recording.${finalFileExtension}`;
+        formData.append('audio', finalAudioBlob, fileName);
         
         // Add audio format info for backend processing
-        formData.append('audio_format', audioBlob.type);
+        formData.append('audio_format', finalAudioBlob.type);
 
         if (currentLeadId) {
           formData.append('lead_id', currentLeadId);
@@ -911,12 +932,12 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
       try {
         const formData = new FormData();
         
-        // Use the correct file extension based on actual format
-        const fileName = `recording.${fileExtension}`;
-        formData.append('audio', audioBlob, fileName);
+        // Use the converted WAV file (or original if conversion failed)
+        const fileName = `recording.${finalFileExtension}`;
+        formData.append('audio', finalAudioBlob, fileName);
         
         // Add audio format info for backend processing
-        formData.append('audio_format', audioBlob.type);
+        formData.append('audio_format', finalAudioBlob.type);
 
         if (currentLeadId) {
           formData.append('lead_id', currentLeadId);
@@ -983,7 +1004,7 @@ export default function ChatInterface({ leadId, onNewMessage }: ChatInterfacePro
         setIsTranscribing(false);
       }
     }
-};
+  };
 
   const handleVoiceClick = () => {
     if (isRecording) {
